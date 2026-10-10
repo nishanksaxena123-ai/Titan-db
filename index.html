@@ -135,6 +135,8 @@ ul.l li::before { content: ">"; position: absolute; left: 0; color: var(--red); 
 .spoil[data-open="1"] { filter: none; user-select: auto; }
 .sp { color: var(--warn); font-size: 11px; letter-spacing: .12em; margin-right: 6px; }
 
+.whos { display: flex; flex-wrap: wrap; gap: 6px; }
+.card .tag { white-space: normal; }
 .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
 .card { border: 1px solid var(--line); background: var(--panel); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .card h3 { font-size: 18px; color: var(--red); overflow-wrap: anywhere; }
@@ -160,7 +162,7 @@ ul.l li::before { content: ">"; position: absolute; left: 0; color: var(--red); 
   </header>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Database sections"></nav>
   <main id="main"></main>
-  <p class="foot">Fan-made reference for the Legendary MonsterVerse. Compiled from the films and the Monarch series; Monarch Season 2 details were checked against current reports. Images are not supplied: add your own to any record.</p>
+  <p class="foot">Fan-made reference for the Legendary MonsterVerse and Toho's Godzilla films, compiled from public fan wikis and news reports. Release dates and recent films may change. Images are not supplied: add your own to any record.</p>
 </div>
 <script>
 /* TITAN DOSSIERS. Items starting with "!" are spoilers and stay hidden until tapped. */
@@ -718,21 +720,638 @@ const GLOSSARY = [
   { k: "Apex Cybernetics", v: "The company that built Mechagodzilla in Godzilla vs. Kong." },
   { k: "Monarch", v: "A global organization that studies Titans, founded in 1946." }
 ];
+/* Toho films, other adaptations, and MonsterVerse comics and books. Toho is a separate continuity from the Legendary MonsterVerse. */
+WORKS.forEach(function (w) { w.univ = "MV"; });
+WORKS.push(
+  /* Showa era, 1954 to 1975 */
+  { code: "T54", univ: "TOHO", era: "SHOWA", title: "Godzilla (Gojira)", type: "FILM", date: "1954", by: "Ishiro Honda",
+    blurb: "A prehistoric sea reptile woken by hydrogen bomb tests destroys Tokyo. Dr. Serizawa's Oxygen Destroyer kills it, and he dies with it." },
+  { code: "T55", univ: "TOHO", era: "SHOWA", title: "Godzilla Raids Again", type: "FILM", date: "1955", by: "Motoyoshi Oda",
+    blurb: "A second Godzilla fights Anguirus in Osaka. The military buries him under an ice-covered island. The US release called him Gigantis." },
+  { code: "T62", univ: "TOHO", era: "SHOWA", title: "King Kong vs. Godzilla", type: "FILM", date: "1962", by: "Ishiro Honda",
+    blurb: "A company's publicity stunt brings King Kong to Japan, where he fights Godzilla at Mount Fuji and Atami. Kong is seen swimming home at the end." },
+  { code: "T64M", univ: "TOHO", era: "SHOWA", title: "Mothra vs. Godzilla", type: "FILM", date: "1964", by: "Ishiro Honda",
+    blurb: "Mothra's egg washes ashore and Godzilla attacks. Mothra dies defending it, and her twin larvae bind Godzilla in silk." },
+  { code: "T64G", univ: "TOHO", era: "SHOWA", title: "Ghidorah, the Three-Headed Monster", type: "FILM", date: "1964", by: "Ishiro Honda",
+    blurb: "King Ghidorah arrives from space. Mothra persuades Godzilla and Rodan to fight him, the first time Godzilla teams up with other monsters." },
+  { code: "T65", univ: "TOHO", era: "SHOWA", title: "Invasion of Astro-Monster", type: "FILM", date: "1965", by: "Ishiro Honda",
+    blurb: "Aliens from Planet X borrow Godzilla and Rodan to fight Ghidorah, then try to control them. The aliens call Godzilla Monster Zero-One." },
+  { code: "T66", univ: "TOHO", era: "SHOWA", title: "Ebirah, Horror of the Deep", type: "FILM", date: "1966", by: "Jun Fukuda",
+    blurb: "Godzilla wakes on Letchi Island and fights the giant lobster Ebirah and the Red Bamboo terrorist group." },
+  { code: "T67", univ: "TOHO", era: "SHOWA", title: "Son of Godzilla", type: "FILM", date: "1967", by: "Jun Fukuda",
+    blurb: "Godzilla finds an infant Minilla on Solgell Island and protects him from Kamacuras and Kumonga." },
+  { code: "T68", univ: "TOHO", era: "SHOWA", title: "Destroy All Monsters", type: "FILM", date: "1968", by: "Ishiro Honda",
+    blurb: "Earth's monsters live on Monsterland until aliens take control and send them against world cities. Freed, they gang up on Ghidorah." },
+  { code: "T69", univ: "TOHO", era: "SHOWA", title: "All Monsters Attack", type: "FILM", date: "1969", by: "Ishiro Honda",
+    blurb: "A lonely boy dreams of Monster Island, where Minilla learns to stand up to the bully Gabara." },
+  { code: "T71", univ: "TOHO", era: "SHOWA", title: "Godzilla vs. Hedorah", type: "FILM", date: "1971", by: "Yoshimitsu Banno",
+    blurb: "A pollution-eating alien grows into Hedorah. Godzilla dries it out with giant electrodes and uses his breath to fly." },
+  { code: "T72", univ: "TOHO", era: "SHOWA", title: "Godzilla vs. Gigan", type: "FILM", date: "1972", by: "Jun Fukuda",
+    blurb: "Aliens use the cyborg Gigan and King Ghidorah against Godzilla and Anguirus." },
+  { code: "T73", univ: "TOHO", era: "SHOWA", title: "Godzilla vs. Megalon", type: "FILM", date: "1973", by: "Jun Fukuda",
+    blurb: "The undersea nation Seatopia sends Megalon, helped by Gigan, to attack the surface. Godzilla and the robot Jet Jaguar fight back." },
+  { code: "T74", univ: "TOHO", era: "SHOWA", title: "Godzilla vs. Mechagodzilla", type: "FILM", date: "1974", by: "Jun Fukuda",
+    blurb: "Aliens disguise Mechagodzilla as Godzilla. King Caesar helps the real Godzilla destroy it." },
+  { code: "T75", univ: "TOHO", era: "SHOWA", title: "Terror of Mechagodzilla", type: "FILM", date: "1975", by: "Ishiro Honda",
+    blurb: "The aliens rebuild Mechagodzilla and link it to a cyborg woman, with Titanosaurus as an ally. The last film of the Showa series." },
+  /* Heisei era, 1984 to 1995 */
+  { code: "H84", univ: "TOHO", era: "HEISEI", title: "The Return of Godzilla", type: "FILM", date: "1984", by: "Koji Hashimoto",
+    blurb: "A new Godzilla appears during the Cold War. This film ignores the 1955 to 1975 sequels and begins the Heisei continuity." },
+  { code: "H89", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. Biollante", type: "FILM", date: "1989", by: "Kazuki Omori",
+    blurb: "Scientists splice Godzilla cells into a rose carrying a dead girl's cells and create Biollante." },
+  { code: "H91", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. King Ghidorah", type: "FILM", date: "1991", by: "Kazuki Omori",
+    blurb: "Time travellers try to erase Godzilla's origin and create King Ghidorah in his place." },
+  { code: "H92", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. Mothra", type: "FILM", date: "1992", by: "Takao Okawara",
+    blurb: "Mothra and her dark counterpart Battra fight each other, then join forces against Godzilla." },
+  { code: "H93", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. Mechagodzilla II", type: "FILM", date: "1993", by: "Takao Okawara",
+    blurb: "Japan builds Mechagodzilla from Ghidorah's remains. A baby Godzilla hatches and Rodan joins the fight." },
+  { code: "H94", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. SpaceGodzilla", type: "FILM", date: "1994-12-10", by: "Kensho Yamashita",
+    blurb: "A Godzilla clone formed in space attacks Godzilla and Little Godzilla. The UN mech M.O.G.U.E.R.A. helps defeat it." },
+  { code: "H95", univ: "TOHO", era: "HEISEI", title: "Godzilla vs. Destoroyah", type: "FILM", date: "1995", by: "Takao Okawara",
+    blurb: "Godzilla nears a nuclear meltdown while Destoroyah, born from the Oxygen Destroyer, kills Junior. Meant as the final Godzilla film." },
+  /* Millennium era, 1999 to 2004 */
+  { code: "M99", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla 2000: Millennium", type: "FILM", date: "1999", by: "Takao Okawara",
+    blurb: "Godzilla attacks Japan again and meets the alien Orga. Begins the Millennium series, where most films stand alone." },
+  { code: "M00", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla vs. Megaguirus", type: "FILM", date: "2000", by: "Masaaki Tezuka",
+    blurb: "Giant dragonflies and their queen Megaguirus attack Tokyo while Japan tests the Dimension Tide weapon on Godzilla." },
+  { code: "M01", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla, Mothra and King Ghidorah: Giant Monsters All-Out Attack", type: "FILM", date: "2001", by: "Shusuke Kaneko",
+    blurb: "A vengeful Godzilla, driven by the spirits of war dead, faces Japan's guardian monsters." },
+  { code: "M02", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla Against Mechagodzilla", type: "FILM", date: "2002", by: "Masaaki Tezuka",
+    blurb: "Kiryu, built around the 1954 Godzilla's skeleton, fights a new Godzilla." },
+  { code: "M03", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla: Tokyo S.O.S.", type: "FILM", date: "2003", by: "Masaaki Tezuka",
+    blurb: "Mothra asks Japan to return the first Godzilla's bones. Kiryu is rebuilt and fights Godzilla beside Mothra." },
+  { code: "M04", univ: "TOHO", era: "MILLENNIUM", title: "Godzilla: Final Wars", type: "FILM", date: "2004", by: "Ryuhei Kitamura",
+    blurb: "Aliens unleash many monsters on Earth while a mutant team and Godzilla fight back. Marks Godzilla's 50th anniversary." },
+  /* Other Godzilla films and series */
+  { code: "US98", univ: "TOHO", era: "US FILM", title: "Godzilla (1998)", type: "FILM", date: "1998", by: "Roland Emmerich",
+    blurb: "TriStar's American film about a mutated iguana in New York City. Toho later renamed this creature Zilla." },
+  { code: "SG16", univ: "TOHO", era: "REIWA", title: "Shin Godzilla", type: "FILM", date: "2016-07-29", by: "Hideaki Anno and Shinji Higuchi",
+    blurb: "A new creature rises in Tokyo Bay and evolves while officials struggle to respond. Operation Yashiori freezes it." },
+  { code: "SP21", univ: "TOHO", era: "ANIME", title: "Godzilla Singular Point", type: "SERIES", date: "2021", by: "Anime series from Bones (Netflix)",
+    blurb: "An animated mystery series about strange phenomena and giant monsters appearing in Japan." },
+  { code: "A17", univ: "TOHO", era: "ANIME", title: "Godzilla: Planet of the Monsters", type: "FILM", date: "2017", by: "Kobun Shizuno and Hiroyuki Seshita",
+    blurb: "Humans return to an Earth ruled by a huge Godzilla after 20,000 years away. First of the animated trilogy." },
+  { code: "A18a", univ: "TOHO", era: "ANIME", title: "Godzilla: City on the Edge of Battle", type: "FILM", date: "2018", by: "Kobun Shizuno and Hiroyuki Seshita",
+    blurb: "Survivors try to defeat Godzilla Earth with Mechagodzilla City. Second of the animated trilogy." },
+  { code: "A18b", univ: "TOHO", era: "ANIME", title: "Godzilla: The Planet Eater", type: "FILM", date: "2018", by: "Kobun Shizuno and Hiroyuki Seshita",
+    blurb: "Godzilla Earth faces Ghidorah, a threat from beyond. Final film of the animated trilogy." },
+  { code: "MO23", univ: "TOHO", era: "REIWA", title: "Godzilla Minus One", type: "FILM", date: "2023-11-03", by: "Takashi Yamazaki",
+    blurb: "In postwar Japan a former kamikaze pilot faces Godzilla. The film won the Academy Award for Best Visual Effects." },
+  { code: "MC24", univ: "TOHO", era: "REIWA", title: "Godzilla Minus One/Minus Color", type: "FILM", date: "2024-01-12", by: "Takashi Yamazaki",
+    blurb: "A black-and-white version of Godzilla Minus One released in Japan in January 2024." },
+  { code: "MZ26", univ: "TOHO", era: "REIWA", title: "Godzilla Minus Zero", type: "FILM", date: "2026-11-03", by: "Takashi Yamazaki",
+    blurb: "Direct sequel to Godzilla Minus One, set two years after the war. Scheduled for release in Japan on November 3, 2026." },
+  /* MonsterVerse comics, books and games */
+  { code: "CAW", univ: "COMICS", era: "COMICS", title: "Godzilla: Awakening", type: "GRAPHIC NOVEL", date: "2014-05-07", by: "Max Borenstein and Greg Borenstein",
+    blurb: "A prequel to the 2014 film. Follows Ishiro Serizawa from Hiroshima to 1981 and shows Monarch's early days. Its canon status is disputed." },
+  { code: "CBK", univ: "COMICS", era: "COMICS", title: "Skull Island: The Birth of Kong", type: "COMIC SERIES", date: "2017", by: "Arvid Nelson and Zid",
+    blurb: "A 1995 Monarch expedition led by Houston Brooks' son returns to Skull Island and learns how Kong became the last of his kind." },
+  { code: "CAS", univ: "COMICS", era: "COMICS", title: "Godzilla: Aftershock", type: "GRAPHIC NOVEL", date: "2019-05-21", by: "Arvid Nelson and Drew Edward Johnson",
+    blurb: "Set months after the 2014 film. Emma Russell investigates MUTO Prime and Godzilla fights it and its parent species." },
+  { code: "CDO", univ: "COMICS", era: "COMICS", title: "Godzilla Dominion", type: "GRAPHIC NOVEL", date: "2021-04-06", by: "Greg Keyes and Drew Johnson",
+    blurb: "Set between KOTM and Godzilla vs. Kong. Godzilla looks for a new home and fights or stops several Titans." },
+  { code: "CJL", univ: "COMICS", era: "COMICS", title: "Justice League vs. Godzilla vs. Kong", type: "CROSSOVER", date: "2023", by: "Brian Buccellato, Christian Duce and Luis Guerrero",
+    blurb: "A DC crossover where Godzilla and Kong enter the DC Universe. Lex Luthor builds his own Mechagodzilla." },
+  { code: "CDE", univ: "COMICS", era: "COMICS", title: "Monsterverse Declassified", type: "ANTHOLOGY", date: "2024", by: "Legendary Comics",
+    blurb: "A four-story anthology about Behemoth, Abaddon, Titanus Doug and Tiamat." },
+  { code: "GSI", univ: "COMICS", era: "COMICS", title: "Kong: Survivor Instinct", type: "VIDEO GAME", date: "2024", by: "Game tie-in",
+    blurb: "A game in which Abaddon fights Kong in an American coastal city." },
+  { code: "NKM", univ: "COMICS", era: "COMICS", title: "Godzilla: King of the Monsters novelization", type: "NOVEL", date: "2019", by: "Greg Keyes",
+    blurb: "The film's novelization. It gives extra scenes to Titans like Mokele-Mbembe and adds Kraken and Margygr." }
+);
+/* Toho kaiju and non-Legendary Godzilla versions. Each has "g" (group) and "films" (codes from works2.js). "!" prefix = spoiler. */
+const KAIJU = [
+{
+  id: "k-showa", name: "SHOWA GODZILLA", alias: "Second Generation Godzilla (1955-1975)", g: "GODZILLA",
+  cls: "Showa series", role: "Starts as a destroyer and becomes Japan's protector.",
+  size: "50 m tall, 105 m long, 20,000 tons",
+  films: ["T54","T55","T62","T64M","T64G","T65","T66","T67","T68","T69","T71","T72","T73","T74","T75"],
+  abilities: [
+    "Atomic breath: white mist in Godzilla Raids Again, a blue beam from King Kong vs. Godzilla onward",
+    "Magnetic powers after lightning strikes in Godzilla vs. Mechagodzilla",
+    "Flight at about Mach 1, using his breath for propulsion"
+  ],
+  lore: [
+    "The 1954 Godzilla is killed by the Oxygen Destroyer. The second Godzilla appears a year later in Godzilla Raids Again.",
+    "He is an aggressive animal in the early films, then reluctantly teams up with Mothra and Rodan against Ghidorah.",
+    "In Son of Godzilla he adopts Minilla, and by the 1970s he is a hero defending Japan from mostly alien threats.",
+    "Famous fights: Anguirus at Osaka Castle, King Kong at Mount Fuji and Atami, Hedorah, Gigan, and Mechagodzilla in Okinawa.",
+    "His Japanese name Gojira combines the words for gorilla and whale."
+  ]
+},
+{
+  id: "k-heisei", name: "HEISEI GODZILLA", alias: "Third Generation Godzilla (1984-1995)", g: "GODZILLA",
+  cls: "Heisei series", role: "Anti-hero who ends with a nuclear meltdown.",
+  size: "About 80 m in the first two films, then about 100 m and 60,000 tons",
+  films: ["H84","H89","H91","H92","H93","H94","H95"],
+  abilities: [
+    "Atomic breath, with a stronger red Spiral Heat Ray later",
+    "Nuclear pulse",
+    "Burning Godzilla form after uranium on Baas Island ignites",
+    "Heart works like a biological nuclear reactor"
+  ],
+  lore: [
+    "Origin: a Godzillasaurus on Lagos Island, changed by the 1954 Castle Bravo test and a Soviet submarine crash in the Bering Sea.",
+    "The series ignores all Showa films except the 1954 original, and runs as one continuous story.",
+    "Godzilla Junior hatches in Godzilla vs. Mechagodzilla II and Godzilla adopts him.",
+    "!In Godzilla vs. Destoroyah, Godzilla melts down. Junior absorbs the radiation and becomes the next Godzilla."
+  ]
+},
+{
+  id: "k-millennium", name: "MILLENNIUM GODZILLA", alias: "Godzilla (1999-2004)", g: "GODZILLA",
+  cls: "Millennium series", role: "Standalone Godzilla for each film.",
+  size: "Varies by film",
+  films: ["M99","M00","M01","M02","M03","M04"],
+  abilities: [
+    "Atomic breath",
+    "Regeneration shown in several films"
+  ],
+  lore: [
+    "Most Millennium films stand alone and ignore each other.",
+    "Godzilla Against Mechagodzilla and Tokyo S.O.S. form one two-part story.",
+    "Giant Monsters All-Out Attack shows Godzilla driven by the spirits of those killed in the war.",
+    "Final Wars celebrates the 50th anniversary and brings back many classic monsters."
+  ]
+},
+{
+  id: "k-shin", name: "SHIN GODZILLA", alias: "Godzilla (2016)", g: "GODZILLA",
+  cls: "Evolving fission-powered Godzilla", role: "A disaster that evolves in front of Japan's government.",
+  size: "Grows through several forms. Sources disagree on exact sizes.",
+  films: ["SG16"],
+  abilities: [
+    "Atomic breath",
+    "Purple beams from between the dorsal fins and the tail",
+    "Needs water to cool its fission-powered body",
+    "Regenerates severed dorsal fins",
+    "Leaves radiation behind"
+  ],
+  lore: [
+    "He arrives as a gilled creature in Kamata, then stands upright in Shinagawa, grows larger at Kamakura and reaches a final form after an American bombing.",
+    "Origin is tied to nuclear waste dumped in the Pacific. Biologist Goro Maki's notes reveal this.",
+    "Operation Yashiori is named after the sake used against Yamata no Orochi in Japanese myth. Explosive trains, drones and toppled skyscrapers pin him down before a blood coagulant is pumped into his mouth.",
+    "!He is frozen, not killed, and the film ends with small creatures forming on his tail."
+  ]
+},
+{
+  id: "k-minus", name: "GODZILLA MINUS ONE", alias: "Godzilla (2023)", g: "GODZILLA",
+  cls: "Postwar Godzilla", role: "Threatens a Japan that has already lost everything.",
+  size: "Not stated by the sources I used",
+  films: ["MO23","MC24","MZ26"],
+  abilities: [
+    "Atomic heat ray fired after his dorsal fins glow blue",
+    "Regeneration from severe wounds",
+    "Survives gunfire, explosives and warship attacks"
+  ],
+  lore: [
+    "Set mostly between 1945 and 1947. Former kamikaze pilot Koichi Shikishima survives an encounter with Godzilla on Odo Island.",
+    "A group of former navy personnel plans to sink Godzilla with gas canisters and balloons.",
+    "!The film ends with a hint that a surviving piece of Godzilla's flesh is regenerating.",
+    "Godzilla Minus Zero is a direct sequel set two years after the war. Reports say it is scheduled for release in Japan on November 3, 2026, with hints of King Ghidorah and a New York setting. Details may change."
+  ]
+},
+{
+  id: "k-zilla", name: "ZILLA", alias: "Godzilla (1998 American film)", g: "GODZILLA",
+  cls: "Mutated iguana", role: "Fast creature that nests in New York City.",
+  size: "Not stated by the sources I used",
+  films: ["US98"],
+  abilities: [
+    "Speed and agility",
+    "Asexual reproduction, laying many eggs"
+  ],
+  lore: [
+    "The TriStar film was poorly received, which led Toho to revive its own series in 1999.",
+    "Toho later renamed the creature Zilla and used it in Final Wars."
+  ]
+},
+{
+  id: "k-earth", name: "GODZILLA EARTH", alias: "Anime trilogy (2017-2018)", g: "GODZILLA",
+  cls: "Plant-like Godzilla", role: "Ruler of an Earth humanity left behind.",
+  size: "Not stated by the sources I used",
+  films: ["A17","A18a","A18b"],
+  abilities: [
+    "Reactive armor and energy beams",
+    "Has grown for 20,000 years"
+  ],
+  lore: [
+    "Humans return to find Godzilla in control of the planet.",
+    "The trilogy brings back Mechagodzilla City and Ghidorah as new threats."
+  ]
+},
+{
+  id: "k-anguirus", name: "ANGUIRUS", alias: "Spiked armored kaiju", g: "KAIJU",
+  cls: "Ankylosaurus-based kaiju", role: "Godzilla's loyal ally.",
+  size: "About 60 m tall, 100 m long, 30,000 tons",
+  films: ["T55","T68","T72","T73","T74"],
+  abilities: [
+    "Spiked carapace used as a weapon",
+    "Fast and agile, with long leaps",
+    "Swims and burrows underground",
+    "Unusually intelligent for a kaiju"
+  ],
+  lore: [
+    "The 1955 Anguirus is the first monster Godzilla fights on screen.",
+    "In Destroy All Monsters he clamps onto King Ghidorah's neck and holds on while it flies.",
+    "In Godzilla vs. Mechagodzilla he recognizes the fake Godzilla as an impostor and has his jaw broken."
+  ]
+},
+{
+  id: "k-ghidorah", name: "KING GHIDORAH (TOHO)", alias: "Monster Zero / Space Dragon", g: "KAIJU",
+  cls: "Three-headed space dragon", role: "Godzilla's classic alien enemy.",
+  size: "100 m tall, 150 m wingspan, 30,000 tons",
+  films: ["T64G","T65","T68","T72","H91","M01"],
+  abilities: [
+    "Gravity beams from three heads",
+    "Flight at about Mach 3 in the atmosphere",
+    "Hurricane-force wing winds"
+  ],
+  lore: [
+    "In the Showa films he arrives in a meteor at Kurobe Valley and is said to have destroyed Venus's civilization.",
+    "He is killed in Destroy All Monsters by Godzilla, Minilla, Anguirus and Gorosaurus.",
+    "In Godzilla vs. King Ghidorah time travellers create a new Ghidorah to stop Godzilla's origin."
+  ]
+},
+{
+  id: "k-mothra", name: "MOTHRA", alias: "Guardian of the Infant Island", g: "KAIJU",
+  cls: "Giant moth", role: "A protector often tied to the Shobijin twin fairies.",
+  size: "Varies by film",
+  films: ["T64M","T64G","H92","M01","M03"],
+  abilities: [
+    "Silk spun in larval form",
+    "Flight and wing winds as an adult",
+    "Life cycle from egg to larva to adult"
+  ],
+  lore: [
+    "Mothra vs. Godzilla ends with Mothra dying defending her egg.",
+    "In Godzilla vs. Mothra she fights her dark counterpart Battra, then they ally against Godzilla.",
+    "In Tokyo S.O.S. she asks Japan to return the first Godzilla's bones."
+  ]
+},
+{
+  id: "k-hedorah", name: "HEDORAH", alias: "The Smog Monster", g: "KAIJU",
+  cls: "Alien sludge organism", role: "Pollution-fed enemy.",
+  size: "60 m and about 48,000 tons in the Perfect form",
+  films: ["T71"],
+  abilities: [
+    "Acidic, poisonous body",
+    "Eye lasers",
+    "Toxic gas and sulfuric acid mist",
+    "Can split into new Hedorahs from its remains"
+  ],
+  lore: [
+    "He arrives on a comet from the Dark Gaseous Nebula in Orion and feeds on pollution.",
+    "Godzilla powers giant electrodes with his atomic breath to dry him out.",
+    "The name comes from the Japanese word for sludge."
+  ]
+},
+{
+  id: "k-gigan", name: "GIGAN", alias: "Cyborg Space Monster", g: "KAIJU",
+  cls: "Alien cyborg", role: "Weapon used by alien invaders.",
+  size: "Not stated by the sources I used",
+  films: ["T72","T73"],
+  abilities: [
+    "Hooked arms and a buzzsaw on the chest",
+    "Cyborg body"
+  ],
+  lore: [
+    "Alien invaders use Gigan and King Ghidorah against Godzilla and Anguirus.",
+    "He returns to help Megalon in Godzilla vs. Megalon."
+  ]
+},
+{
+  id: "k-mechagodzilla", name: "MECHAGODZILLA (SHOWA)", alias: "Alien robot copy", g: "KAIJU",
+  cls: "Black Hole Planet 3 weapon", role: "Alien disguise built to conquer Earth.",
+  size: "About 50 m tall, 40,000 tons",
+  films: ["T74","T75"],
+  abilities: [
+    "Space Beams and finger missiles",
+    "Cross Attack Beam",
+    "Flight at Mach 5 with Jet Fire propulsion",
+    "Space Titanium armor"
+  ],
+  lore: [
+    "Producer Tomoyuki Tanaka conceived it for Godzilla's 20th anniversary.",
+    "In the second film it links to a cyborg woman, Katsura Mafune.",
+    "Godzilla destroys it both times."
+  ]
+},
+{
+  id: "k-kiryu", name: "KIRYU", alias: "MFS-3 / Mechagodzilla (Millennium)", g: "KAIJU",
+  cls: "Multipurpose Fighting System Type-3", role: "Japan's anti-Godzilla weapon.",
+  size: "About 60 m tall, 36,000 tons",
+  films: ["M02","M03"],
+  abilities: [
+    "Twin Maser Cannon and Absolute Zero Cannon",
+    "Spiral Claw drill",
+    "DNA computers that make it vulnerable to Godzilla's roar"
+  ],
+  lore: [
+    "It was built around the skeleton of the 1954 Godzilla.",
+    "In Tokyo S.O.S. it carries the defeated Godzilla out to sea and sinks into the Japan Trench."
+  ]
+},
+{
+  id: "k-spacegodzilla", name: "SPACEGODZILLA", alias: "Space-born Godzilla clone", g: "KAIJU",
+  cls: "Crystal-hardened clone", role: "Cosmic rival of Godzilla.",
+  size: "Not stated by the sources I used",
+  films: ["H94"],
+  abilities: [
+    "Corona Beam",
+    "Energy shield that deflects Godzilla's breath",
+    "Telekinesis and crystal spears",
+    "Draws energy from crystal structures"
+  ],
+  lore: [
+    "Formed when Godzilla cells reached space, possibly on Biollante or on Mothra, and merged with crystalline organisms.",
+    "He traps Little Godzilla in a crystal prison and turns Fukuoka into a crystal fortress.",
+    "Godzilla and M.O.G.U.E.R.A. destroy Fukuoka Tower, which powered him."
+  ]
+},
+{
+  id: "k-biollante", name: "BIOLLANTE", alias: "Rose-Godzilla hybrid", g: "KAIJU",
+  cls: "Plant-based kaiju", role: "Created from a scientist's daughter's cells.",
+  size: "Flower Beast form about 85 m, Plant Beast form about 120 m",
+  films: ["H89"],
+  abilities: [
+    "Tendrils and corrosive sap",
+    "Breaks into spores to escape and regenerate",
+    "Telepathic link to Erika's spirit"
+  ],
+  lore: [
+    "Dr. Shiragami spliced his dead daughter Erika's cells into a rose, then added Godzilla cells.",
+    "She survives by turning into spores and ascends into space at the end."
+  ]
+},
+{
+  id: "k-destoroyah", name: "DESTOROYAH", alias: "Living Oxygen Destroyer", g: "KAIJU",
+  cls: "Mutated Precambrian crustaceans", role: "Final enemy of the Heisei series.",
+  size: "Perfect form about 120 m tall, 80,000 tons",
+  films: ["H95"],
+  abilities: [
+    "Splits into smaller forms and recombines",
+    "Oxygen Destroyer ray",
+    "Weak to extreme cold"
+  ],
+  lore: [
+    "Created when the Oxygen Destroyer was detonated in Tokyo Bay in 1954.",
+    "He kills Godzilla Junior, which drives Godzilla's final battle.",
+    "!Cold weapons and Godzilla's meltdown heat destroy him."
+  ]
+},
+{
+  id: "k-minilla", name: "MINILLA / JUNIOR", alias: "Godzilla's children", g: "KAIJU",
+  cls: "Godzilla offspring", role: "Adopted sons in two different continuities.",
+  size: "Minilla is small. Junior grows to about 30 m.",
+  films: ["T67","T69","H93","H94","H95"],
+  abilities: [
+    "Smoke rings in the Showa films",
+    "Atomic breath once grown"
+  ],
+  lore: [
+    "Minilla appears in Son of Godzilla and All Monsters Attack.",
+    "Junior hatches in Godzilla vs. Mechagodzilla II and becomes Little Godzilla.",
+    "!Junior is killed by Destoroyah and revived by Godzilla's radiation."
+  ]
+}
+];
+
+/* Rivalries and alliances. "who" lists names for display. */
+const RIVALS = [
+  { t: "Godzilla vs. Kong (Toho, 1962)", who: ["Godzilla", "King Kong"], kind: "RIVALRY", d: "Kong is brought to Japan as a publicity stunt and fights Godzilla at Mount Fuji and Atami. Kong swims home at the end." },
+  { t: "Godzilla vs. Kong (MonsterVerse, 2021)", who: ["Godzilla", "Kong", "Mechagodzilla"], kind: "RIVALRY", d: "Godzilla attacks Apex in Pensacola, the two fight, then team up against Mechagodzilla in Hong Kong." },
+  { t: "Godzilla and Kong ally (2024)", who: ["Godzilla", "Kong", "Skar King", "Shimo"], kind: "ALLIANCE", d: "They unite against the Skar King and Shimo in The New Empire." },
+  { t: "Godzilla vs. Ghidorah (MonsterVerse, 2019)", who: ["Godzilla", "King Ghidorah"], kind: "RIVALRY", d: "Two rival Alphas. Godzilla loses first, is revived, and kills Ghidorah in Boston." },
+  { t: "Godzilla vs. Ghidorah (Toho)", who: ["Godzilla", "Mothra", "Rodan", "King Ghidorah"], kind: "ALLIANCE", d: "In 1964, Mothra persuades Godzilla and Rodan to fight Ghidorah, the first time Godzilla teams up with other monsters." },
+  { t: "Godzilla and Mothra (MonsterVerse)", who: ["Godzilla", "Mothra"], kind: "ALLIANCE", d: "Mothra gives her life energy to revive Godzilla in KOTM." },
+  { t: "Godzilla vs. MUTOs (2014)", who: ["Godzilla", "Male MUTO", "Female MUTO"], kind: "RIVALRY", d: "Godzilla hunts both MUTOs and kills them in San Francisco." },
+  { t: "Kong vs. Skullcrawlers", who: ["Kong", "Skullcrawlers"], kind: "RIVALRY", d: "The Skullcrawlers killed Kong's family. Kong kills the Chief in the 1973 climax." },
+  { t: "Godzilla and Scylla", who: ["Godzilla", "Scylla"], kind: "RIVALRY", d: "Dominion shows Godzilla stopping Scylla from feeding on a sunken nuclear bomb. He kills her in Rome in The New Empire." },
+  { t: "Godzilla and Tiamat", who: ["Godzilla", "Tiamat"], kind: "RIVALRY", d: "Godzilla defeats her on land in Dominion and kills her in the Arctic in The New Empire." },
+  { t: "Behemoth vs. Amhuluk", who: ["Behemoth", "Amhuluk"], kind: "RIVALRY", d: "They fight in the Amazon in Dominion and Declassified, and Godzilla breaks it up." },
+  { t: "Godzilla vs. MUTO Prime (Aftershock)", who: ["Godzilla", "MUTO Prime", "Jinshin-Mushi"], kind: "RIVALRY", d: "Godzilla fights Jinshin-Mushi and kills MUTO Prime in Montana." },
+  { t: "Toho: Godzilla vs. Mechagodzilla (1974)", who: ["Godzilla", "King Caesar", "Mechagodzilla"], kind: "RIVALRY", d: "Aliens disguise Mechagodzilla as Godzilla. King Caesar helps the real Godzilla destroy it." },
+  { t: "Toho: Godzilla vs. Hedorah (1971)", who: ["Godzilla", "Hedorah"], kind: "RIVALRY", d: "Godzilla dries Hedorah out with giant electrodes." },
+  { t: "Toho: Godzilla vs. SpaceGodzilla (1994)", who: ["Godzilla", "SpaceGodzilla", "M.O.G.U.E.R.A."], kind: "RIVALRY", d: "Godzilla and M.O.G.U.E.R.A. beat the crystal clone." },
+  { t: "Toho: Godzilla vs. Destoroyah (1995)", who: ["Godzilla", "Destoroyah", "Junior"], kind: "RIVALRY", d: "Destoroyah kills Junior and Godzilla melts down." }
+];
+/* More Toho kaiju, extra films, and links from comics to MonsterVerse records. */
+WORKS.push(
+  { code: "T56", univ: "TOHO", era: "OTHER TOHO", title: "Rodan", type: "FILM", date: "1956", by: "Ishiro Honda",
+    blurb: "A Pteranodon-like monster wakes under Mount Aso after nuclear tests and attacks Fukuoka. Rodan and his mate die in the lava." },
+  { code: "T67K", univ: "TOHO", era: "OTHER TOHO", title: "King Kong Escapes", type: "FILM", date: "1967", by: "Ishiro Honda",
+    blurb: "Toho's second King Kong film. Kong fights a robot copy, Mechani-Kong." }
+);
+
+KAIJU.push(
+{
+  id: "k-rodan", name: "RODAN (TOHO)", alias: "Giant Pteranodon", g: "KAIJU",
+  cls: "Prehistoric flyer", role: "Starts as an enemy and becomes Godzilla's ally.",
+  size: "About 50 m tall. Wingspan about 81 m in Rodan and 120 m later.",
+  films: ["T56","T64G","T65","T68"],
+  abilities: [
+    "Supersonic flight at about Mach 1.5",
+    "Shockwaves and hurricane-force winds from his wings",
+    "Strong enough to ram and carry heavy objects",
+    "Durable, apparently unaffected by Godzilla's breath and Ghidorah's gravity beams"
+  ],
+  lore: [
+    "In Rodan (1956) a Pteranodon survives 200 million years in an egg under Mount Aso. Nuclear tests wake it and it attacks Fukuoka.",
+    "!Rodan and his mate die in the lava of Mount Aso. A Rodan returns in 1964 as a possible survivor or offspring.",
+    "In Ghidorah, the Three-Headed Monster he fights Godzilla, then teams with Godzilla and Mothra against Ghidorah.",
+    "In Destroy All Monsters he is mind-controlled by the Kilaaks and attacks Moscow and Tokyo."
+  ]
+},
+{
+  id: "k-kong-toho", name: "KING KONG (TOHO)", alias: "Toho's version of Kong", g: "KAIJU",
+  cls: "Giant ape", role: "Godzilla's opponent in 1962.",
+  size: "Not stated by the sources I used",
+  films: ["T62","T67K"],
+  abilities: [
+    "Strength increased by electricity in King Kong vs. Godzilla",
+    "Fights Godzilla at Mount Fuji and Atami"
+  ],
+  lore: [
+    "A company brings Kong to Japan as a publicity stunt in King Kong vs. Godzilla (1962).",
+    "!Kong is seen swimming home at the end of the film.",
+    "In King Kong Escapes (1967) he fights a robot copy of himself, Mechani-Kong. Mechani-Kong later inspired Mechagodzilla."
+  ]
+},
+{
+  id: "k-ebirah", name: "EBIRAH", alias: "Horror of the Deep", g: "KAIJU",
+  cls: "Giant crustacean", role: "Guards Letchi Island for the Red Bamboo.",
+  size: "About 50 m tall, 60 m long, 23,000 tons",
+  films: ["T66","T69","M04"],
+  abilities: [
+    "Two claws, a large crushing claw and a smaller stabbing claw",
+    "Tail sweeps and leaping attacks",
+    "Fast swimmer at about 150 km/h"
+  ],
+  lore: [
+    "Nuclear runoff from the Red Bamboo's base mutated him into a giant.",
+    "Godzilla tears off his claws in the rematch and Ebirah retreats into the deep.",
+    "In Final Wars he is a Xilien-controlled monster beaten in Tokyo Bay."
+  ]
+},
+{
+  id: "k-megalon", name: "MEGALON", alias: "Guardian deity of Seatopia", g: "KAIJU",
+  cls: "Giant beetle", role: "Sent to destroy the surface by Seatopians.",
+  size: "About 55 m tall, 40,000 tons",
+  films: ["T73"],
+  abilities: [
+    "Beast Killer Laser Beam fired from the horn",
+    "Geothermal Napalm",
+    "Drill arms",
+    "Flight, burrowing and high jumps"
+  ],
+  lore: [
+    "Seatopia sends him to attack the surface after nuclear tests damage their home.",
+    "Gigan arrives to help him.",
+    "Godzilla and Jet Jaguar defeat him and the Seatopians recall him underground."
+  ]
+},
+{
+  id: "k-jetjaguar", name: "JET JAGUAR", alias: "Robot hero", g: "KAIJU",
+  cls: "Giant robot", role: "Ally of Godzilla and Japan.",
+  size: "1.8 m at normal size, 50 m when giant",
+  films: ["T73"],
+  abilities: [
+    "Changes size and flies",
+    "Liquid nitrogen breath and a handclap attack"
+  ],
+  lore: [
+    "Inventor Goro Ibuki builds him. The Seatopians steal him, but he becomes self-aware and reprograms himself.",
+    "He pulls Godzilla out of Megalon's napalm fire and breaks Gigan's arm.",
+    "He returns to his family and shrinks back to human size afterward."
+  ]
+},
+{
+  id: "k-kingcaesar", name: "KING CAESAR", alias: "Guardian of Okinawa", g: "KAIJU",
+  cls: "Lion-dog guardian", role: "Wakes when an ancient song is sung.",
+  size: "About 50 m tall, 30,000 tons in the Showa era",
+  films: ["T74"],
+  abilities: [
+    "Prism eyes that reflect an enemy's energy beam back with more power",
+    "Strong legs for leaps and tackles",
+    "Ultrasonic radar ears"
+  ],
+  lore: [
+    "He sleeps in a cliff at Cape Manzamo and belongs to the legend of Okinawa's Azumi royal family.",
+    "He helps Godzilla destroy Mechagodzilla by ramming it while Godzilla holds it.",
+    "His name combines king with shisa, a lion-dog figure from Okinawa."
+  ]
+},
+{
+  id: "k-titanosaurus", name: "TITANOSAURUS", alias: "Sea dinosaur", g: "KAIJU",
+  cls: "Mutated sea dinosaur", role: "Ally of Mechagodzilla in 1975.",
+  size: "About 60 m tall, 30,000 tons",
+  films: ["T75"],
+  abilities: [
+    "Tail fan that makes gale-force winds or whirlpools",
+    "Swims at about 200 km/h and breathes underwater",
+    "Weak to ultrasonic waves"
+  ],
+  lore: [
+    "Dr. Shinzo Mafune finds the peaceful dinosaur and seeks revenge on the scientists who mocked him.",
+    "!Ultrasonic waves disrupt its control device. Godzilla blasts it off a cliff and its fate is left unknown."
+  ]
+},
+{
+  id: "k-battra", name: "BATTRA", alias: "Dark twin of Mothra", g: "KAIJU",
+  cls: "Earth-created guardian", role: "Starts as Mothra's enemy and becomes her ally.",
+  size: "Larva about 90 m long. Adult about 73 m long, 180 m wingspan.",
+  films: ["H92"],
+  abilities: [
+    "Prism beams from the adult form",
+    "Flight at Mach 3",
+    "Horn attacks, burrowing and fast swimming as a larva"
+  ],
+  lore: [
+    "The Earth created Battra about 12,000 years ago to destroy a climate-controlling device, but he went further and tried to wipe out humanity.",
+    "Mothra sealed him in the Arctic Ocean. A meteor revives him.",
+    "!Godzilla kills him by firing atomic breath into a bite wound."
+  ]
+},
+{
+  id: "k-orga", name: "ORGA", alias: "Millennian aliens combined", g: "KAIJU",
+  cls: "Alien organism", role: "Villain of Godzilla 2000.",
+  size: "About 60 m tall, 75 m long, 40,000 tons",
+  films: ["M99"],
+  abilities: [
+    "Shoulder cannon",
+    "Regeneration faster than Godzilla's",
+    "Absorbs Godzilla's DNA through bites",
+    "Telepathic control of the Millennian UFO"
+  ],
+  lore: [
+    "The Millennians absorb Godzilla's cells and merge into one body that Godzilla's DNA mutates.",
+    "Orga tries to swallow Godzilla whole.",
+    "!Godzilla lets himself be swallowed and unleashes a nuclear pulse from inside, destroying Orga."
+  ]
+},
+{
+  id: "k-megaguirus", name: "MEGAGUIRUS", alias: "Queen of the Meganula", g: "KAIJU",
+  cls: "Giant insect queen", role: "Born from a Dimension Tide wormhole.",
+  size: "About 50 m long, 80 m wingspan, 12,000 tons",
+  films: ["M00"],
+  abilities: [
+    "Flight at up to Mach 4",
+    "Stinger that drains energy",
+    "Pincer claws, shockwaves and fireballs"
+  ],
+  lore: [
+    "A black hole weapon aimed at Godzilla opens a wormhole and a Meganula lays an egg on Earth.",
+    "The swarm gives Godzilla's energy to the queen, who molts into Megaguirus.",
+    "Godzilla bites off her stinger and burns her with two atomic breath blasts."
+  ]
+}
+);
+
+/* Normalise Toho records to the same shape as Titan records. */
+KAIJU.forEach(function (k) {
+  k.kind = k.g; k.traits = k.lore; k.appears = k.films; k.first = k.films[0];
+});
+
+/* Link comics and games to MonsterVerse records so they show up in the archive. */
+[["godzilla", ["CAW", "CAS", "CDO", "CJL"]], ["kong", ["CBK", "CJL", "GSI"]], ["muto", ["CAW", "CAS"]],
+ ["skullcrawler", ["CBK"]], ["scylla", ["CDO"]], ["behemoth", ["CDO", "CDE"]], ["tiamat", ["CDO", "CDE"]],
+ ["amhuluk", ["CDO", "CDE"]], ["abaddon", ["CDE", "GSI"]], ["mokele-mbembe", ["NKM"]], ["mechagodzilla", ["CJL"]]
+].forEach(function (p) {
+  var t = TITANS.filter(function (x) { return x.id === p[0]; })[0];
+  if (t) p[1].forEach(function (c) { if (t.appears.indexOf(c) < 0) t.appears.push(c); });
+});
 (function () {
   var LABEL = { G14: "Godzilla (2014)", KSI: "Kong: Skull Island", KOTM: "King of the Monsters", GVK: "Godzilla vs. Kong",
-    TNE: "The New Empire", SUP: "Supernova", SKI: "Skull Island (anime)", MLM1: "Monarch S1", MLM2: "Monarch S2" };
-  var KINDS = ["ALL", "TITAN", "MUTO", "SKULL ISLAND", "HOLLOW EARTH", "CONSTRUCT", "SERIES"];
-  var TABS = [["titans", "TITANS"], ["outposts", "OUTPOSTS"], ["archive", "ARCHIVE"], ["sites", "SITES"], ["timeline", "TIMELINE"], ["people", "PERSONNEL"], ["glossary", "GLOSSARY"]];
-  var state = { tab: "titans", kind: "ALL", q: "", src: null, sel: "godzilla", view: "list", color: false };
+    TNE: "The New Empire", SUP: "Supernova", SKI: "Skull Island (anime)", MLM1: "Monarch S1", MLM2: "Monarch S2",
+    M01: "All-Out Attack (2001)", MO23: "Minus One", MC24: "Minus Color", MZ26: "Minus Zero", SG16: "Shin Godzilla" };
+  var WMAP = {};
+  WORKS.forEach(function (w) { WMAP[w.code] = w; });
+  var SETS = {
+    titans: { data: TITANS, u: "MV", ref: " MonsterVerse", ph: "SEARCH TITANS, OUTPOSTS, ABILITIES",
+      kinds: ["ALL", "TITAN", "MUTO", "SKULL ISLAND", "HOLLOW EARTH", "CONSTRUCT", "SERIES"] },
+    toho: { data: KAIJU, u: "TOHO", ref: " Godzilla Toho", ph: "SEARCH TOHO KAIJU AND FILMS", kinds: ["ALL", "GODZILLA", "KAIJU"] }
+  };
+  var TABS = [["titans", "TITANS"], ["toho", "TOHO FILES"], ["rivals", "RIVALRIES"], ["outposts", "OUTPOSTS"], ["archive", "ARCHIVE"],
+    ["sites", "SITES"], ["timeline", "TIMELINE"], ["people", "PERSONNEL"], ["glossary", "GLOSSARY"]];
+  var UNIVS = [["ALL", "ALL"], ["MV", "MONSTERVERSE"], ["TOHO", "TOHO"], ["COMICS", "COMICS & MEDIA"]];
+  var state = { tab: "titans", kind: "ALL", q: "", src: null, sel: { titans: "godzilla", toho: "k-showa" }, view: "list", color: false,
+    au: "ALL", aq: "", rk: "ALL", ru: "ALL", rq: "" };
   var imgs = {};
 
   function $(s) { return document.querySelector(s); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  function label(c) { return LABEL[c] || c; }
+  function label(c) { return LABEL[c] || (WMAP[c] ? WMAP[c].title : c); }
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
   function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
   function getImg(id) { return imgs[id] || lsGet("mv_img_" + id); }
+  function norm(s) { return String(s).toLowerCase().replace(/\s*\(.*?\)\s*/g, " ").trim(); }
+  function chipRow(attr, items, aria) {
+    return '<div class="chips" role="group" aria-label="' + aria + '">' + items.map(function (it) {
+      return '<button class="chip" type="button" data-' + attr + '="' + it[0] + '" aria-pressed="false">' + esc(it[1]) + "</button>";
+    }).join("") + "</div>";
+  }
+  function pressed(attr, val) {
+    document.querySelectorAll("[data-" + attr + "]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-" + attr) === val)); });
+  }
 
   function sp(text) {
     var lead = text.charAt(0) === "!";
@@ -743,25 +1362,29 @@ const GLOSSARY = [
     return (pre ? esc(pre) + " " : "") + '<span class="sp">SPOILER</span><button class="spoil" type="button" data-sp>' + esc(post) + "</button>";
   }
   function fmtDate(d) {
+    if (/^\d{4}$/.test(d)) return d;
     var dt = new Date(d + "T00:00:00Z");
+    if (isNaN(dt.getTime())) return d;
     var s = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).toUpperCase();
     return dt.getTime() > Date.now() ? s + " (UPCOMING)" : s;
   }
+  function ruv(r) { return /toho/i.test(r.t) ? "TOHO" : "MV"; }
+  function count(tab, code) { return SETS[tab].data.filter(function (t) { return t.appears.indexOf(code) >= 0; }).length; }
 
+  /* ---------- Titan and Toho dossiers ---------- */
   function visible() {
-    var q = state.q.trim().toLowerCase();
-    return TITANS.filter(function (t) {
+    var S = SETS[state.tab], q = state.q.trim().toLowerCase();
+    return S.data.filter(function (t) {
       if (state.kind !== "ALL" && t.kind !== state.kind) return false;
       if (state.src && t.appears.indexOf(state.src) < 0) return false;
       if (!q) return true;
-      var safe = t.traits.filter(function (x) { return x.charAt(0) !== "!"; });
+      var safe = t.traits.filter(function (x) { return x.indexOf("!") < 0; });
       var hay = [t.name, t.alias, t.cls, t.role, t.kind, t.size, t.status, t.outpost || ""].concat(t.abilities, safe).join(" ").toLowerCase();
       return hay.indexOf(q) >= 0;
     });
   }
-
   function slot(t, img) {
-    var q = encodeURIComponent(t.name.replace(/[^\w ]/g, "") + " MonsterVerse");
+    var q = encodeURIComponent(t.name.replace(/[^\w ]/g, "") + SETS[state.tab].ref);
     var inner = img
       ? '<img src="' + img + '" alt="' + esc(t.name) + ' reference image">'
       : '<div><div class="ret"></div><small>NO VISUAL ON FILE</small><small>ADD AN IMAGE BELOW</small></div>';
@@ -771,43 +1394,92 @@ const GLOSSARY = [
       '<a class="btn dim" href="https://www.google.com/search?tbm=isch&q=' + q + '" target="_blank" rel="noopener noreferrer">FIND REFERENCE</a></div>' +
       '<div class="msg" id="msg" role="status"></div>';
   }
-
   function dossier(t) {
-    var spec = [["DESIGNATION", t.cls], ["TYPE", t.kind], ["OUTPOST", t.outpost || "None on file"], ["ROLE", t.role], ["SIZE", t.size], ["STATUS", t.status], ["FIRST SEEN", label(t.first)]];
+    var spec = [["DESIGNATION", t.cls], ["TYPE", t.kind], ["OUTPOST", t.outpost], ["ROLE", t.role], ["SIZE", t.size], ["STATUS", t.status], ["FIRST SEEN", label(t.first)]]
+      .filter(function (r) { return r[1]; });
+    var nm = norm(t.name), u = SETS[state.tab].u;
+    var rel = RIVALS.filter(function (r) { return ruv(r) === u && r.who.some(function (w) { return norm(w) === nm; }); });
     return '<button class="back" type="button" data-back>&lt; BACK TO LIST</button>' +
       '<div class="dh"><h2>' + esc(t.name) + "</h2><p>" + esc(t.alias) + "</p></div>" +
       '<div class="twocol"><div>' + slot(t, getImg(t.id)) + '</div><div class="brk"><dl class="spec">' +
       spec.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("") + "</dl></div></div>" +
       '<section><h3 class="sec">ABILITIES</h3><ul class="l">' + t.abilities.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></section>" +
       '<section><h3 class="sec">FIELD NOTES</h3><ul class="l">' + t.traits.map(function (a) { return "<li>" + sp(a) + "</li>"; }).join("") + "</ul></section>" +
+      (rel.length ? '<section><h3 class="sec">RIVALRIES AND ALLIANCES</h3><ul class="l">' + rel.map(function (r) {
+        return "<li><strong>" + r.kind + "</strong> " + esc(r.t) + ". " + esc(r.d) + "</li>"; }).join("") + "</ul></section>" : "") +
       '<section><h3 class="sec">APPEARS IN</h3><div class="chips">' +
       t.appears.map(function (c) { return '<button class="chip" type="button" data-src="' + c + '">' + esc(label(c)) + "</button>"; }).join("") + "</div></section>";
   }
-
-  function titansShell() {
-    return '<div class="bar"><input class="q" id="q" type="search" placeholder="SEARCH RECORDS" autocomplete="off" aria-label="Search records" value="' + esc(state.q) + '"></div>' +
-      '<div class="chips" role="group" aria-label="Filter by type">' +
-      KINDS.map(function (k) { return '<button class="chip" type="button" data-kind="' + k + '" aria-pressed="false">' + k + "</button>"; }).join("") + "</div>" +
+  function recordsShell() {
+    var S = SETS[state.tab];
+    return '<div class="bar"><input class="q" id="q" type="search" placeholder="' + S.ph + '" autocomplete="off" aria-label="Search records" value="' + esc(state.q) + '"></div>' +
+      chipRow("kind", S.kinds.map(function (k) { return [k, k]; }), "Filter by type") +
       '<div class="meta" style="margin-top:12px"><span id="count"></span><span id="srcpill"></span></div>' +
       '<div class="split" data-view="list"><div class="list" id="list"></div><div class="dossier" id="dossier"></div></div>';
   }
-
-  function updateTitans() {
-    var list = visible();
-    if (!list.some(function (t) { return t.id === state.sel; })) state.sel = list.length ? list[0].id : null;
-    if (!state.sel) state.view = "list";
-    $("#count").textContent = "SHOWING " + list.length + " OF " + TITANS.length + " RECORDS";
+  function updateRecords() {
+    var S = SETS[state.tab], list = visible(), sel = state.sel[state.tab];
+    if (!list.some(function (t) { return t.id === sel; })) { sel = list.length ? list[0].id : null; state.sel[state.tab] = sel; }
+    if (!sel) state.view = "list";
+    $("#count").textContent = "SHOWING " + list.length + " OF " + S.data.length + " RECORDS";
     $("#srcpill").innerHTML = state.src ? '<button class="pill" type="button" data-clear>FILTER: ' + esc(label(state.src)).toUpperCase() + " [X]</button>" : "";
-    document.querySelectorAll("[data-kind]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.kind === state.kind)); });
+    pressed("kind", state.kind);
     $("#list").innerHTML = list.length ? list.map(function (t) {
-      var n = String(TITANS.indexOf(t) + 1).padStart(2, "0");
-      return '<button class="row" type="button" data-id="' + t.id + '" aria-current="' + (t.id === state.sel) + '"><span class="n">' + n +
+      var n = String(S.data.indexOf(t) + 1).padStart(2, "0");
+      return '<button class="row" type="button" data-id="' + t.id + '" aria-current="' + (t.id === sel) + '"><span class="n">' + n +
         '</span><span><span class="nm">' + esc(t.name) + '</span><span class="al">' + esc(t.alias) + '</span></span><span class="tag">' + esc(t.kind) + "</span></button>";
     }).join("") : '<p class="meta">NO RECORDS MATCH. CLEAR THE SEARCH OR FILTERS.</p>';
-    $("#dossier").innerHTML = state.sel ? dossier(TITANS.filter(function (t) { return t.id === state.sel; })[0]) : "";
+    $("#dossier").innerHTML = sel ? dossier(S.data.filter(function (t) { return t.id === sel; })[0]) : "";
     $(".split").setAttribute("data-view", state.view);
   }
 
+  /* ---------- Archive ---------- */
+  function archiveShell() {
+    return '<div class="bar"><input class="q" id="aq" type="search" placeholder="SEARCH FILMS, SERIES AND COMICS" autocomplete="off" aria-label="Search the archive" value="' + esc(state.aq) + '"></div>' +
+      chipRow("au", UNIVS, "Filter by universe") +
+      '<div class="meta" style="margin-top:12px"><span id="acount"></span></div><div id="acards"></div>';
+  }
+  function updateArchive() {
+    var q = state.aq.trim().toLowerCase();
+    var list = WORKS.filter(function (w) {
+      if (state.au !== "ALL" && w.univ !== state.au) return false;
+      return !q || [w.title, w.blurb, w.by, w.type, w.era || ""].join(" ").toLowerCase().indexOf(q) >= 0;
+    }).sort(function (a, b) { return a.date.localeCompare(b.date) || a.code.localeCompare(b.code); });
+    pressed("au", state.au);
+    $("#acount").textContent = "SHOWING " + list.length + " OF " + WORKS.length + " WORKS";
+    $("#acards").innerHTML = list.length ? cards(list, function (w) {
+      var links = ["titans", "toho"].map(function (tb) {
+        var n = count(tb, w.code);
+        return n ? '<button class="btn" type="button" data-work="' + w.code + '" data-wtab="' + tb + '">VIEW ' + n + (tb === "titans" ? " TITAN" : " TOHO") + (n > 1 ? " RECORDS" : " RECORD") + "</button>" : "";
+      }).join("");
+      return '<article class="card"><span class="k">' + esc(w.type) + (w.era ? " / " + esc(w.era) : "") + " / " + fmtDate(w.date) + "</span><h3>" + esc(w.title) +
+        "</h3><p>" + esc(w.blurb) + '</p><span class="k">' + esc(w.by) + "</span>" + (links ? '<div class="acts">' + links + "</div>" : "") + "</article>";
+    }) : '<p class="meta">NOTHING MATCHES. CLEAR THE SEARCH OR FILTER.</p>';
+  }
+
+  /* ---------- Rivalries ---------- */
+  function rivalsShell() {
+    return '<div class="bar"><input class="q" id="rq" type="search" placeholder="SEARCH RIVALRIES AND ALLIANCES" autocomplete="off" aria-label="Search rivalries" value="' + esc(state.rq) + '"></div>' +
+      chipRow("rk", [["ALL", "ALL"], ["RIVALRY", "RIVALRIES"], ["ALLIANCE", "ALLIANCES"]], "Filter by kind") +
+      '<div style="height:6px"></div>' + chipRow("ru", [["ALL", "ALL"], ["MV", "MONSTERVERSE"], ["TOHO", "TOHO"]], "Filter by universe") +
+      '<div class="meta" style="margin-top:12px"><span id="rcount"></span></div><div id="rcards"></div>';
+  }
+  function updateRivals() {
+    var q = state.rq.trim().toLowerCase();
+    var list = RIVALS.filter(function (r) {
+      if (state.rk !== "ALL" && r.kind !== state.rk) return false;
+      if (state.ru !== "ALL" && ruv(r) !== state.ru) return false;
+      return !q || [r.t, r.d, r.who.join(" ")].join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    pressed("rk", state.rk); pressed("ru", state.ru);
+    $("#rcount").textContent = "SHOWING " + list.length + " OF " + RIVALS.length + " ENTRIES";
+    $("#rcards").innerHTML = list.length ? cards(list, function (r) {
+      return '<article class="card"><span class="k">' + r.kind + " / " + (ruv(r) === "TOHO" ? "TOHO" : "MONSTERVERSE") + "</span><h3>" + esc(r.t) + "</h3><p>" + esc(r.d) +
+        '</p><div class="whos">' + r.who.map(function (w) { return '<span class="tag">' + esc(w) + "</span>"; }).join("") + "</div></article>";
+    }) : '<p class="meta">NOTHING MATCHES. CLEAR THE SEARCH OR FILTERS.</p>';
+  }
+
+  /* ---------- Other sections ---------- */
   function cards(items, fn) { return '<div class="cards">' + items.map(fn).join("") + "</div>"; }
   var VIEWS = {
     outposts: function () {
@@ -816,12 +1488,6 @@ const GLOSSARY = [
           return '<article class="card"><span class="k">OUTPOST ' + o.n + "</span><h3>" + esc(o.place) + "</h3><p><strong>" + esc(o.titan) + "</strong></p><p>" + esc(o.note) +
             '</p><div><button class="btn" type="button" data-goto="' + o.id + '">OPEN DOSSIER</button></div></article>';
         });
-    },
-    archive: function () {
-      return cards(WORKS.slice().sort(function (a, b) { return a.date.localeCompare(b.date); }), function (w) {
-        return '<article class="card"><span class="k">' + w.type + " / " + fmtDate(w.date) + "</span><h3>" + esc(w.title) + "</h3><p>" + esc(w.blurb) +
-          '</p><span class="k">' + esc(w.by) + '</span><div><button class="btn" type="button" data-work="' + w.code + '">VIEW TITANS</button></div></article>';
-      });
     },
     sites: function () {
       return cards(SITES, function (s) { return '<article class="card"><span class="k">' + esc(s.where.toUpperCase()) + "</span><h3>" + esc(s.name) + "</h3><p>" + esc(s.note) + "</p></article>"; });
@@ -845,11 +1511,16 @@ const GLOSSARY = [
   }
   function show() {
     renderTabs();
-    if (state.tab === "titans") { $("#main").innerHTML = titansShell(); updateTitans(); }
-    else $("#main").innerHTML = VIEWS[state.tab]();
+    var t = state.tab, m = $("#main");
+    if (SETS[t]) { m.innerHTML = recordsShell(); updateRecords(); }
+    else if (t === "archive") { m.innerHTML = archiveShell(); updateArchive(); }
+    else if (t === "rivals") { m.innerHTML = rivalsShell(); updateRivals(); }
+    else m.innerHTML = VIEWS[t]();
   }
+  function go(tab) { state.tab = tab; state.kind = "ALL"; state.q = ""; state.src = null; state.view = "list"; }
   function toTop() { if (window.innerWidth < 860) window.scrollTo(0, 0); }
 
+  /* ---------- Images ---------- */
   function processFile(file, id) {
     if (!file) return;
     var msg = $("#msg");
@@ -866,14 +1537,14 @@ const GLOSSARY = [
         try { url = c.toDataURL("image/jpeg", 0.82); } catch (e) { msg.textContent = "COULD NOT READ THAT IMAGE."; return; }
         imgs[id] = url;
         var ok = lsSet("mv_img_" + id, url);
-        updateTitans();
+        updateRecords();
         if (!ok) $("#msg").textContent = "SHOWN FOR THIS SESSION ONLY. BROWSER STORAGE IS FULL OR BLOCKED.";
       };
       im.onerror = function () {
         if (file.size < 1500000 && /^data:image\//.test(String(fr.result))) {
           imgs[id] = fr.result;
           var ok2 = lsSet("mv_img_" + id, fr.result);
-          updateTitans();
+          updateRecords();
           if (!ok2) $("#msg").textContent = "SHOWN FOR THIS SESSION ONLY. BROWSER STORAGE IS FULL OR BLOCKED.";
         } else msg.textContent = "COULD NOT READ THAT IMAGE. TRY A JPG OR PNG.";
       };
@@ -882,30 +1553,37 @@ const GLOSSARY = [
     fr.readAsDataURL(file);
   }
 
+  /* ---------- Events ---------- */
   document.addEventListener("click", function (e) {
     var b = e.target.closest("button");
     if (!b) return;
     var d = b.dataset;
     if (d.sp !== undefined) { b.setAttribute("data-open", "1"); return; }
-    if (d.tab) { state.tab = d.tab; show(); window.scrollTo(0, 0); return; }
-    if (d.kind) { state.kind = d.kind; state.view = "list"; updateTitans(); return; }
-    if (d.id) { state.sel = d.id; state.view = "dossier"; updateTitans(); toTop(); return; }
-    if (d.back !== undefined) { state.view = "list"; updateTitans(); toTop(); return; }
-    if (d.src) { state.src = d.src; state.view = "list"; updateTitans(); toTop(); return; }
-    if (d.clear !== undefined) { state.src = null; updateTitans(); return; }
-    if (d.work) { state.src = d.work; state.tab = "titans"; state.view = "list"; show(); window.scrollTo(0, 0); return; }
-    if (d.goto) { state.tab = "titans"; state.kind = "ALL"; state.src = null; state.q = ""; state.sel = d.goto; state.view = "dossier"; show(); window.scrollTo(0, 0); return; }
-    if (d.col !== undefined) { state.color = !state.color; updateTitans(); return; }
-    if (d.rm !== undefined) { delete imgs[state.sel]; lsDel("mv_img_" + state.sel); updateTitans(); }
+    if (d.tab) { go(d.tab); show(); window.scrollTo(0, 0); return; }
+    if (d.kind) { state.kind = d.kind; state.view = "list"; updateRecords(); return; }
+    if (d.au) { state.au = d.au; updateArchive(); return; }
+    if (d.rk) { state.rk = d.rk; updateRivals(); return; }
+    if (d.ru) { state.ru = d.ru; updateRivals(); return; }
+    if (d.id) { state.sel[state.tab] = d.id; state.view = "dossier"; updateRecords(); toTop(); return; }
+    if (d.back !== undefined) { state.view = "list"; updateRecords(); toTop(); return; }
+    if (d.src) { state.src = d.src; state.view = "list"; updateRecords(); toTop(); return; }
+    if (d.clear !== undefined) { state.src = null; updateRecords(); return; }
+    if (d.work) { go(d.wtab || "titans"); state.src = d.work; show(); window.scrollTo(0, 0); return; }
+    if (d.goto) { go("titans"); state.sel.titans = d.goto; state.view = "dossier"; show(); window.scrollTo(0, 0); return; }
+    if (d.col !== undefined) { state.color = !state.color; updateRecords(); return; }
+    if (d.rm !== undefined) { var id = state.sel[state.tab]; delete imgs[id]; lsDel("mv_img_" + id); updateRecords(); }
   });
   document.addEventListener("input", function (e) {
-    if (e.target.id === "q") { state.q = e.target.value; state.view = "list"; updateTitans(); }
+    var id = e.target.id;
+    if (id === "q") { state.q = e.target.value; state.view = "list"; updateRecords(); }
+    else if (id === "aq") { state.aq = e.target.value; updateArchive(); }
+    else if (id === "rq") { state.rq = e.target.value; updateRivals(); }
   });
   document.addEventListener("change", function (e) {
-    if (e.target.id === "file") processFile(e.target.files[0], state.sel);
+    if (e.target.id === "file") processFile(e.target.files[0], state.sel[state.tab]);
   });
 
-  var LOG = ["AUTH TOKEN ACCEPTED", "OUTPOST UPLINK ONLINE", TITANS.length + " TITAN RECORDS LOADED", "MONARCH S2 FINALE ON FILE", "TITAN ACTIVITY: MONITORED"];
+  var LOG = ["AUTH TOKEN ACCEPTED", "OUTPOST UPLINK ONLINE", (TITANS.length + KAIJU.length) + " RECORDS LOADED", WORKS.length + " WORKS IN THE ARCHIVE", "TITAN ACTIVITY: MONITORED"];
   var li = 0;
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     setInterval(function () { if (document.hidden) return; li = (li + 1) % LOG.length; $("#logtxt").textContent = LOG[li]; }, 3200);

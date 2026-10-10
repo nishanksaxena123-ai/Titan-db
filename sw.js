@@ -1,5 +1,5 @@
-/* Offline cache for the Monarch Titan Database. Serves cached files first, then refreshes them in the background. */
-const CACHE = "monarch-titan-db-v1";
+/* Offline cache for the Monarch Titan Database. Tries the network first so updates show up right away, and falls back to the cache when offline. */
+const CACHE = "monarch-titan-db-v2";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -15,19 +15,16 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  if (e.request.method !== "GET" || new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
-    caches.match(e.request).then((hit) => {
-      const net = fetch(e.request)
-        .then((res) => {
-          if (res && (res.ok || res.type === "opaque")) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-          }
-          return res;
-        })
-        .catch(() => hit);
-      return hit || net;
-    })
+    fetch(e.request)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request).then((hit) => hit || caches.match("./index.html")))
   );
 });
