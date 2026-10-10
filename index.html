@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monarch Titan Database</title>
+<meta name="theme-color" content="#080304">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Titan DB">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); background: #080304; }
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: classified terminal. Header with live log, tab bar, then a list + dossier split (single column on phones). Single red-on-black look by design. */
+:root {
+  --bg: #080304;
+  --bg2: #110506;
+  --panel: #150708;
+  --line: #4a1218;
+  --line-hi: #9a1f28;
+  --red: #ff3b3b;
+  --ink: #ff7b73;
+  --ink-dim: #d06a66;
+  --warn: #ffb347;
+  --font-display: "Oxanium", "Eurostile", "Bahnschrift", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  margin: 0; color: var(--ink); font: 15px/1.55 var(--font-mono);
+  background: radial-gradient(120% 80% at 50% 0%, var(--bg2), var(--bg) 70%);
+  min-height: 100%;
+}
+.scan { position: fixed; inset: 0; pointer-events: none; z-index: 60;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
+.shell { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 40px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: .06em; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--line-hi); }
+.brand { display: flex; flex-direction: column; min-width: 0; }
+.mk { font: 700 clamp(28px, 7vw, 44px)/1 var(--font-display); letter-spacing: .28em; color: var(--red);
+  text-shadow: 0 0 10px rgba(255,59,59,.55); }
+.sub { font-size: 12px; letter-spacing: .18em; color: var(--ink-dim); margin-top: 6px; }
+.log { font-size: 12px; letter-spacing: .08em; color: var(--ink-dim); min-width: 0; }
+.log b { color: var(--red); font-weight: 400; }
+.cur::after { content: "\2588"; margin-left: 4px; color: var(--red); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-block: 12px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; background: none; border: 1px solid var(--line); padding: 8px 14px; letter-spacing: .14em; font-size: 13px; color: var(--ink-dim); }
+.tab[aria-selected="true"] { background: var(--red); color: var(--bg); border-color: var(--red); font-weight: 700; }
+
+.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.q { flex: 1 1 220px; min-width: 0; background: var(--panel); border: 1px solid var(--line-hi); padding: 10px 12px; letter-spacing: .06em; }
+.q::placeholder { color: var(--ink-dim); opacity: .8; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: none; border: 1px solid var(--line); padding: 4px 10px; font-size: 12px; letter-spacing: .1em; color: var(--ink-dim); }
+.chip[aria-pressed="true"] { border-color: var(--red); color: var(--red); background: rgba(255,59,59,.12); }
+.meta { font-size: 12px; letter-spacing: .12em; color: var(--ink-dim); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 12px; }
+.pill { border: 1px solid var(--warn); color: var(--warn); padding: 1px 8px; background: none; font-size: 12px; letter-spacing: .1em; }
+
+.split { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 860px) { .split { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); align-items: start; } .back { display: none; } }
+@media (max-width: 859px) { .split[data-view="list"] .dossier, .split[data-view="dossier"] .list { display: none; } }
+
+.list { display: flex; flex-direction: column; gap: 6px; }
+.row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left;
+  background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; }
+.row .n { color: var(--ink-dim); font-size: 12px; }
+.row .nm { font: 700 17px/1.2 var(--font-display); letter-spacing: .08em; color: var(--red); overflow-wrap: anywhere; }
+.row .al { display: block; font-size: 12px; color: var(--ink-dim); overflow-wrap: anywhere; }
+.tag { font-size: 11px; letter-spacing: .14em; border: 1px solid var(--line-hi); padding: 1px 6px; color: var(--ink-dim); white-space: nowrap; }
+.row[aria-current="true"] { background: rgba(255,59,59,.14); border-color: var(--red); }
+
+.brk { position: relative; border: 1px solid var(--line); background: var(--panel); padding: 16px;
+  background-image:
+    linear-gradient(var(--red), var(--red)), linear-gradient(var(--red), var(--red)),
+    linear-gradient(var(--red), var(--red)), linear-gradient(var(--red), var(--red)),
+    linear-gradient(var(--red), var(--red)), linear-gradient(var(--red), var(--red)),
+    linear-gradient(var(--red), var(--red)), linear-gradient(var(--red), var(--red));
+  background-size: 12px 2px, 2px 12px, 12px 2px, 2px 12px, 12px 2px, 2px 12px, 12px 2px, 2px 12px;
+  background-position: left top, left top, right top, right top, left bottom, left bottom, right bottom, right bottom;
+  background-repeat: no-repeat; }
+.dossier { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.dh { display: flex; flex-direction: column; gap: 6px; }
+.dh h2 { font-size: clamp(26px, 6vw, 40px); line-height: 1.05; color: var(--red); text-shadow: 0 0 10px rgba(255,59,59,.45); overflow-wrap: anywhere; }
+.dh p { margin: 0; color: var(--ink-dim); overflow-wrap: anywhere; }
+.back { align-self: flex-start; background: none; border: 1px solid var(--line-hi); padding: 6px 12px; letter-spacing: .12em; font-size: 13px; }
+.twocol { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 700px) { .twocol { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+.slot { aspect-ratio: 4 / 3; max-width: 100%; position: relative; overflow: hidden; border: 1px solid var(--line-hi);
+  background: repeating-linear-gradient(45deg, #12060700 0 10px, #1a090b 10px 11px), var(--bg2);
+  display: grid; place-items: center; text-align: center; padding: 12px; }
+.slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) sepia(1) hue-rotate(-50deg) saturate(3.5) brightness(.85) contrast(1.1); }
+.slot.orig img { filter: none; }
+.slot .ret { width: 56px; height: 56px; border: 1px solid var(--red); border-radius: 50%; margin: 0 auto 8px; position: relative; }
+.slot .ret::before, .slot .ret::after { content: ""; position: absolute; background: var(--red); }
+.slot .ret::before { left: 50%; top: -8px; bottom: -8px; width: 1px; }
+.slot .ret::after { top: 50%; left: -8px; right: -8px; height: 1px; }
+.slot small { display: block; letter-spacing: .14em; color: var(--ink-dim); font-size: 12px; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.btn { background: none; border: 1px solid var(--red); color: var(--red); padding: 6px 12px; letter-spacing: .1em; font-size: 12px; text-decoration: none; display: inline-block; }
+.btn.dim { border-color: var(--line-hi); color: var(--ink-dim); }
+.upl { position: relative; overflow: hidden; cursor: pointer; }
+.upl input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 200px; }
+.upl:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
+.msg { font-size: 12px; color: var(--warn); margin-top: 6px; min-height: 1em; }
+
+dl.spec { margin: 0; display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 6px 14px; }
+dl.spec dt { color: var(--ink-dim); letter-spacing: .12em; font-size: 12px; padding-top: 2px; }
+dl.spec dd { margin: 0; overflow-wrap: anywhere; }
+.sec { font: 700 13px var(--font-display); letter-spacing: .22em; color: var(--ink-dim); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 10px; }
+ul.l { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+ul.l li { padding-left: 18px; position: relative; overflow-wrap: anywhere; }
+ul.l li::before { content: ">"; position: absolute; left: 0; color: var(--red); }
+.spoil { display: inline; text-align: left; background: none; border: 0; padding: 0; filter: blur(5px); user-select: none; }
+.spoil[data-open="1"] { filter: none; user-select: auto; }
+.sp { color: var(--warn); font-size: 11px; letter-spacing: .12em; margin-right: 6px; }
+
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.card { border: 1px solid var(--line); background: var(--panel); padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card h3 { font-size: 18px; color: var(--red); overflow-wrap: anywhere; }
+.card p { margin: 0; overflow-wrap: anywhere; }
+.card .k { color: var(--ink-dim); font-size: 12px; letter-spacing: .1em; }
+.tl { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 1px solid var(--line-hi); display: flex; flex-direction: column; gap: 18px; }
+.tl li { position: relative; }
+.tl li::before { content: ""; position: absolute; left: -23px; top: 7px; width: 9px; height: 9px; background: var(--red); }
+.tl .y { font: 700 20px var(--font-display); color: var(--red); letter-spacing: .1em; }
+.foot { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-dim); letter-spacing: .06em; }
+
+@media (prefers-reduced-motion: reduce) { .cur::after { animation: none; } }
+</style>
+
+<div class="scan" aria-hidden="true"></div>
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <span class="mk">MONARCH</span>
+      <span class="sub">TITAN DATABASE // SECURE CHANNEL</span>
+    </div>
+    <div class="log" id="log"><b>&gt;</b> <span id="logtxt">AUTH TOKEN ACCEPTED</span><span class="cur"></span></div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Database sections"></nav>
+  <main id="main"></main>
+  <p class="foot">Fan-made reference for the Legendary MonsterVerse. Compiled from the films and the Monarch series; Monarch Season 2 details were checked against current reports. Images are not supplied: add your own to any record.</p>
+</div>
+<script>
+/* TITAN DOSSIERS. Items starting with "!" are spoilers and stay hidden until tapped. */
+const TITANS = [
+{
+  id: "godzilla", name: "GODZILLA", alias: "Gojira / Alpha Titan / King of the Monsters",
+  kind: "TITAN", cls: "Titanus Gojira", role: "Alpha Titan. Apex predator that restores balance.",
+  outpost: "Outpost 54 (Castle Bravo, Bermuda): Monarch's base for studying Godzilla",
+  size: "108 m (355 ft) in 2014; about 120 m (394 ft) from 2019 on",
+  status: "ACTIVE", first: "G14", appears: ["G14","KOTM","GVK","TNE","SUP","MLM1","MLM2"],
+  abilities: [
+    "Atomic breath: a focused beam of radioactive energy",
+    "Feeds on radiation and geothermal heat",
+    "Thermonuclear pulse: a burst released when overcharged (KOTM)",
+    "Evolved glowing state with a stronger breath (The New Empire)"
+  ],
+  traits: [
+    "Castle Bravo (1954): Monarch records say the Bikini Atoll H-bomb tests were attempts to kill him.",
+    "2014: rises to hunt the MUTOs and fights them in San Francisco, then returns to the sea.",
+    "2019: loses to King Ghidorah in Boston, is revived by Dr. Serizawa's sacrifice and Mothra's life force, then defeats Ghidorah. The other Titans bow to him.",
+    "2021: attacks Apex Cybernetics in Pensacola, fights Kong twice, then joins Kong against Mechagodzilla in Hong Kong.",
+    "2024: allies with Kong against the Skar King and Shimo.",
+    "The New Empire shows him sleeping in the Colosseum in Rome."
+  ]
+},
+{
+  id: "kong", name: "KONG", alias: "King of Skull Island / Last of his kind",
+  kind: "TITAN", cls: "Titanus Kong", role: "Guardian of Skull Island. Protector of the Iwi.",
+  size: "31.6 m (104 ft) in 1973; about 102 m (337 ft) by 2021",
+  status: "ACTIVE", first: "KSI", appears: ["KSI","GVK","TNE","SUP","MLM2","SKI"],
+  abilities: [
+    "Enormous strength and climbing ability",
+    "Uses tools and weapons, including an axe made from a plate resembling a Godzilla-type dorsal plate (GvK)",
+    "Beast Glove: a powered gauntlet built for his arm (The New Empire)",
+    "Understands human sign language through his bond with Jia"
+  ],
+  traits: [
+    "1973: defends Skull Island from the Skullcrawlers and the human expedition that disturbs them.",
+    "His parents were killed by Skullcrawlers. He is believed to be the last Kong on the surface.",
+    "2021: moved from the Skull Island dome toward Hollow Earth, where he finds his species' ancient home.",
+    "2024: finds a hidden Kong tribe and the young Suko, and faces the Skar King.",
+    "!Season 2 of Monarch: drives Titan X off Skull Island, then returns to fight it in the finale."
+  ]
+},
+{
+  id: "mothra", name: "MOTHRA", alias: "Queen of the Monsters / Mosura",
+  kind: "TITAN", cls: "Titanus Mosura", role: "Guardian Titan. Godzilla's ally.",
+  outpost: "Outpost 61 (Yunnan, China)",
+  size: "Not stated on file",
+  status: "ACTIVE", first: "KOTM", appears: ["KOTM","TNE"],
+  abilities: [
+    "Powerful flight and wind generation",
+    "Bioluminescent wings used for signalling",
+    "Stinger and wing blades used against Ghidorah",
+    "Life cycle of larva, cocoon and adult",
+    "Can transfer life energy to Godzilla"
+  ],
+  traits: [
+    "Found in Monarch Outpost 61 in Yunnan, China, hatching as a larva.",
+    "Monarch twin scientists Dr. Ilene Chen and Dr. Ling Chen have a link to her.",
+    "Dies fighting Ghidorah in KOTM, giving Godzilla the final boost to win.",
+    "Returns in Godzilla x Kong: The New Empire."
+  ]
+},
+{
+  id: "rodan", name: "RODAN", alias: "Fire Demon",
+  kind: "TITAN", cls: "Titanus Rodan", role: "Volcanic flyer. Submits to the Alpha.",
+  outpost: "Outpost 56 (Isla de Mara, Mexico)",
+  size: "Not stated on file",
+  status: "ACTIVE", first: "KOTM", appears: ["KOTM","MLM2"],
+  abilities: [
+    "Supersonic flight",
+    "Heat and shock waves from its wing beats",
+    "Lives inside active volcanoes and resists lava"
+  ],
+  traits: [
+    "Emerges from the volcano at Isla de Mara in KOTM after Ghidorah's call wakes the Titans.",
+    "Bows to Godzilla at the end of KOTM.",
+    "!Season 2 finale of Monarch teases Rodan's return, with Lee Shaw tracking a Titan in Thailand."
+  ]
+},
+{
+  id: "ghidorah", name: "KING GHIDORAH", alias: "Monster Zero / Three-Headed Terror",
+  kind: "TITAN", cls: "Titanus Ghidorah", role: "Rival Alpha. Believed to be of extraterrestrial origin.",
+  outpost: "Outpost 32 (Antarctica)",
+  size: "About 159 m (521 ft)",
+  status: "DEAD (remains reused)", first: "KOTM", appears: ["KOTM","GVK"],
+  abilities: [
+    "Gravity lightning from all three heads",
+    "Regrows severed heads",
+    "Wide wings for flight",
+    "Dominates other Titans as a self-declared Alpha"
+  ],
+  traits: [
+    "Frozen in Monarch Outpost 32 in Antarctica until Alan Jonah's group frees it.",
+    "Killed by Godzilla in Boston in KOTM.",
+    "Apex Cybernetics later uses Ghidorah's remains in the neural link for Mechagodzilla."
+  ]
+},
+{
+  id: "behemoth", name: "BEHEMOTH", alias: "Titanus Behemoth",
+  kind: "TITAN", cls: "Titanus Behemoth", role: "Tusked Titan that regrows jungle.",
+  outpost: "Outpost 58 (Tinguá Biological Reserve near Rio de Janeiro, Brazil)",
+  size: "About 107 m (354 ft), about 90,000 tons",
+  status: "ACTIVE", first: "KOTM", appears: ["KOTM","GVK"],
+  abilities: [
+    "Tusks used to smash buildings and strike other Titans",
+    "Radiation that regrows damaged jungle",
+    "Monarch calls him bio-seismic and bio-fecund"
+  ],
+  traits: [
+    "Hibernated at Outpost 58 until Ghidorah's call woke him.",
+    "Attacks Rio de Janeiro under Ghidorah's influence.",
+    "Travels to Boston and submits to Godzilla at the end of KOTM.",
+    "Appears in Godzilla vs. Kong as stock footage."
+  ]
+},
+{
+  id: "scylla", name: "SCYLLA", alias: "Giant spider-like cephalopod",
+  kind: "TITAN", cls: "Titanus Scylla", role: "Aggressive Titan. Killed by Godzilla in Rome.",
+  outpost: "Outpost 55 (Arizona desert near Sedona and Phoenix, USA)",
+  size: "About 103 m (341 ft), about 20,000 tons",
+  status: "DEAD (killed in The New Empire)", first: "KOTM", appears: ["KOTM","GVK","TNE"],
+  abilities: [
+    "Powerful legs that smash buildings and pierce aircraft",
+    "Mouth tentacles that grab and disorient opponents",
+    "Webbing and a fog that absorbs radiation",
+    "Can shed her shell and grow a new one"
+  ],
+  traits: [
+    "Dormant beneath Outpost 55 until Ghidorah's call woke her in 2019.",
+    "Attacks Phoenix in KOTM, then joins the other Titans in Boston.",
+    "Appears in Godzilla vs. Kong as stock footage.",
+    "The New Empire: attacks Rome and is killed by Godzilla's atomic breath."
+  ]
+},
+{
+  id: "methuselah", name: "METHUSELAH", alias: "The mountain Titan",
+  kind: "TITAN", cls: "Titanus Methuselah", role: "Horned, four-legged Titan. Monarch calls him a protector.",
+  outpost: "Outpost 67 (near Munich, Germany)",
+  size: "About 98 m (322 ft) by one count (sources conflict); about 170,000 tons, the heaviest Titan",
+  status: "ACTIVE", first: "KOTM", appears: ["KOTM","GVK"],
+  abilities: [
+    "Large horns that cause heavy destruction",
+    "Blends into landscapes by posing as a mountain, island or iceberg",
+    "Monarch says he can withstand heavy barrages"
+  ],
+  traits: [
+    "Covered by forest so he looked like an ordinary mountain.",
+    "Erupts after Ghidorah's call and tears through Munich.",
+    "Travels to Boston and bows to Godzilla.",
+    "Appears in Godzilla vs. Kong as stock footage."
+  ]
+},
+{
+  id: "tiamat", name: "TIAMAT", alias: "Titanus Tiamat",
+  kind: "TITAN", cls: "Titanus Tiamat", role: "Serpentine sea Titan. Killed by Godzilla.",
+  outpost: "Outpost 53 (Stone Mountain, Georgia, USA)",
+  size: "About 258 m (847 ft) long, the second-longest Titan",
+  status: "DEAD (killed in The New Empire)", first: "KOTM", appears: ["KOTM","TNE"],
+  abilities: [
+    "Most dangerous underwater, where she can create whirlpools",
+    "Prehensile serpentine body that wraps and restrains opponents",
+    "Corrosive ink and electrical discharges"
+  ],
+  traits: [
+    "Named on a Monarch map of Titan locations in KOTM.",
+    "The New Empire is her first on-screen appearance. Godzilla kills her in the Arctic with his atomic breath."
+  ]
+},
+{
+  id: "abaddon", name: "ABADDON", alias: "Titanus Abaddon",
+  kind: "TITAN", cls: "Titanus Abaddon", role: "Titan resting beneath Devils Tower.",
+  outpost: "Outpost 77 (Devils Tower, Wyoming, USA)",
+  size: "About 98 m (323 ft)",
+  status: "UNKNOWN", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named on a Monarch monitor in KOTM. No abilities are shown on screen."
+  ],
+  traits: [
+    "Ghidorah's call wakes it from Outpost 77.",
+    "The film only shows its name. Other media show it as a web-spinning, burrowing Titan."
+  ]
+},
+{
+  id: "typhon", name: "TYPHON", alias: "Titanus Typhon",
+  kind: "TITAN", cls: "Titanus Typhon", role: "Titan held at Angkor Wat.",
+  outpost: "Outpost 92 (Angkor Wat, Cambodia)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM. No abilities are shown on screen."
+  ],
+  traits: [
+    "Breaks free under Ghidorah's direction. A Monarch monitor shows it attacking the Philippines, then in the South China Sea.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park."
+  ]
+},
+{
+  id: "leviathan", name: "LEVIATHAN", alias: "Titanus Leviathan",
+  kind: "TITAN", cls: "Titanus Leviathan", role: "Sea Titan held at Loch Ness.",
+  outpost: "Outpost 49 (Loch Ness, Scotland)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM. No abilities are shown on screen."
+  ],
+  traits: [
+    "A Monarch monitor first places it in the Arabian Sea, then in the North Atlantic west of Scotland.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park.",
+    "Monarch: Legacy of Monsters later shows that Loch Ness hides a rift to Axis Mundi."
+  ]
+},
+{
+  id: "quetzalcoatl", name: "QUETZALCOATL", alias: "Titanus Quetzalcoatl",
+  kind: "TITAN", cls: "Titanus Quetzalcoatl", role: "Titan held at Machu Picchu.",
+  outpost: "Outpost 57 (Machu Picchu, Peru)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM. No abilities are shown on screen."
+  ],
+  traits: [
+    "Escapes Outpost 57 after Ghidorah's call. A Monarch map aboard the USS Argo tracks it moving north.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park."
+  ]
+},
+{
+  id: "sekhmet", name: "SEKHMET", alias: "Titanus Sekhmet",
+  kind: "TITAN", cls: "Titanus Sekhmet", role: "Titan held at Cairo.",
+  outpost: "Outpost 65 (Cairo, Egypt)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM. No abilities are shown on screen.",
+    "The director has described her design as like a sphinx or lioness"
+  ],
+  traits: [
+    "Breaks loose under Ghidorah's control. A Monarch map shows her moving west, then near Cairo.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park.",
+    "The New Empire shows Cairo as the site of a Vile Vortex to Hollow Earth. Sekhmet does not appear."
+  ]
+},
+{
+  id: "bunyip", name: "BUNYIP", alias: "Titanus Bunyip",
+  kind: "TITAN", cls: "Titanus Bunyip", role: "Titan held beneath Uluru.",
+  outpost: "Outpost 99 (Ayers Rock / Uluru, Australia)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM and shown on Monarch monitors and X-ray images. No abilities are shown."
+  ],
+  traits: [
+    "Breaks loose under Ghidorah's influence. Monarch maps track it northwest, then northeast.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park."
+  ]
+},
+{
+  id: "baphomet", name: "BAPHOMET", alias: "Titanus Baphomet",
+  kind: "TITAN", cls: "Titanus Baphomet", role: "Titan held at Volubilis.",
+  outpost: "Outpost 68 (Volubilis, Morocco)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM and shown on a Monarch X-ray image. No abilities are shown."
+  ],
+  traits: [
+    "Breaks free under Ghidorah's direction. A Monarch map places it in Mexico, then the Canary Islands.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park."
+  ]
+},
+{
+  id: "amhuluk", name: "AMHULUK", alias: "Titanus Amhuluk",
+  kind: "TITAN", cls: "Titanus Amhuluk", role: "Titan held at the Manpupuner rocks.",
+  outpost: "Outpost 66 (Manpupuner rock formations, Komi Republic, Russia)",
+  size: "Not stated in the film",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named on Monarch monitors in KOTM. No abilities are shown on screen."
+  ],
+  traits: [
+    "Escapes Outpost 66 after Ghidorah's alpha call in 2019.",
+    "Pacified at Fenway Park when the Orca is activated."
+  ]
+},
+{
+  id: "yamata-no-orochi", name: "YAMATA NO OROCHI", alias: "Titanus Yamata no Orochi",
+  kind: "TITAN", cls: "Titanus Yamata no Orochi", role: "Serpentine Titan held at Mount Fuji.",
+  outpost: "Outpost 91 (Mount Fuji, Japan)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "Named in KOTM and seen briefly. No abilities are shown on screen."
+  ],
+  traits: [
+    "Ghidorah controls it for a time. After emerging, it swims southeast and threatens a cruise ship in the Pacific.",
+    "Pacified when Madison Russell activates the Orca at Fenway Park."
+  ]
+},
+{
+  id: "mokele-mbembe", name: "MOKELE-MBEMBE", alias: "Titanus Mokele-Mbembe",
+  kind: "TITAN", cls: "Titanus Mokele-Mbembe", role: "Titan held in a pit at Jebel Barkal.",
+  outpost: "Outpost 75 (Jebel Barkal, Sudan)",
+  size: "Not stated on file",
+  status: "PACIFIED", first: "KOTM", appears: ["KOTM"],
+  abilities: [
+    "The film only alludes to it. It is never clearly seen."
+  ],
+  traits: [
+    "The KOTM novelization gives it a much larger role than the film.",
+    "Pacified when the Orca is activated."
+  ]
+},
+{
+  id: "mechagodzilla", name: "MECHAGODZILLA", alias: "Apex Cybernetics weapon",
+  kind: "CONSTRUCT", cls: "Apex Cybernetics prototype", role: "Anti-Titan weapon. Neural link to Ghidorah's remains.",
+  size: "Not stated on file",
+  status: "DESTROYED", first: "GVK", appears: ["GVK"],
+  abilities: [
+    "Energy-beam weapons",
+    "Heavy armour",
+    "Piloted through a neural link to Ghidorah's remains"
+  ],
+  traits: [
+    "Built secretly by Apex Cybernetics, led by Walter Simmons.",
+    "Ren Serizawa is the engineer who runs its neural link.",
+    "Turns on its operators when the link takes over, and is destroyed by Godzilla and Kong in Hong Kong."
+  ]
+},
+{
+  id: "muto", name: "MUTOs", alias: "Massive Unidentified Terrestrial Organisms",
+  kind: "MUTO", cls: "Male and Female MUTO", role: "Radiation-feeding predators hunted by Godzilla.",
+  size: "The female is larger than the male",
+  status: "DEAD (2014)", first: "G14", appears: ["G14","KOTM","MLM1"],
+  abilities: [
+    "Electromagnetic pulse that disables electronics",
+    "Flight (male)",
+    "Egg-laying (female)",
+    "Feed on radiation"
+  ],
+  traits: [
+    "A MUTO emerges from the Janjira nuclear plant in Japan after the 1999 incident.",
+    "They meet and nest in San Francisco in 2014.",
+    "Godzilla kills both MUTOs in the San Francisco battle.",
+    "KOTM: a third MUTO is awakened by Ghidorah and travels to Boston with the other Titans."
+  ]
+},
+{
+  id: "skullcrawler", name: "SKULLCRAWLERS", alias: "Skull Devils",
+  kind: "SKULL ISLAND", cls: "Subterranean reptilian predators", role: "Kong's mortal enemy.",
+  size: "The Chief is the largest",
+  status: "DEAD (Chief killed 1973)", first: "KSI", appears: ["KSI"],
+  abilities: [
+    "Two-legged burrowers that ambush from below",
+    "Long jaws and fast attacks"
+  ],
+  traits: [
+    "They killed Kong's family long before the 1973 expedition.",
+    "Seismic charges set by Randa's group draw them out.",
+    "Kong kills the Chief Skullcrawler in the climax."
+  ]
+},
+{
+  id: "skull-fauna", name: "SKULL ISLAND FAUNA", alias: "Mother Longlegs / Spore Mantis / Sker Buffalo / Leafwings / Mire Squid",
+  kind: "SKULL ISLAND", cls: "Island ecosystem", role: "Native megafauna of Skull Island.",
+  size: "Varies by species",
+  status: "VARIES", first: "KSI", appears: ["KSI","KOTM"],
+  abilities: [
+    "Mother Longlegs: giant spider that hunts in the bamboo forest",
+    "Spore Mantis: camouflaged giant mantis",
+    "Sker Buffalo: huge herbivore that Kong passes in the plains",
+    "Leafwings: giant flying creatures",
+    "Mire Squid: tentacled swamp predator"
+  ],
+  traits: [
+    "Skull Island is hidden behind a permanent storm.",
+    "Most of the island's creatures are mapped by the 1973 expedition.",
+    "KOTM: a flock of Leafwings flies to Boston with the other Titans."
+  ]
+},
+{
+  id: "suko", name: "SUKO", alias: "Young Kong",
+  kind: "HOLLOW EARTH", cls: "Titanus Kong (juvenile)", role: "Juvenile Kong. Kong's adopted kin.",
+  size: "Smaller than Kong",
+  status: "ACTIVE", first: "TNE", appears: ["TNE"],
+  abilities: [
+    "Climbing and agility",
+    "Learns from Kong"
+  ],
+  traits: [
+    "Kong finds him in a Hollow Earth village.",
+    "He is the child of a hidden Kong tribe being threatened by the Skar King."
+  ]
+},
+{
+  id: "skar-king", name: "SKAR KING", alias: "Tyrant of the Hollow Earth",
+  kind: "HOLLOW EARTH", cls: "Giant ape tyrant", role: "Villain of The New Empire.",
+  size: "Not stated on file",
+  status: "DEFEATED", first: "TNE", appears: ["TNE"],
+  abilities: [
+    "Enslaves Shimo to fight for him",
+    "Commands the ape army of his domain"
+  ],
+  traits: [
+    "Rules a captive tribe deep in the Hollow Earth.",
+    "Wants to reach the surface world and rule it.",
+    "Faces Kong and Godzilla in the final battle."
+  ]
+},
+{
+  id: "shimo", name: "SHIMO", alias: "Frost Wyrm",
+  kind: "HOLLOW EARTH", cls: "Titanus Shimo", role: "Ice-breathing Titan bound to the Skar King.",
+  size: "Not stated on file",
+  status: "UNKNOWN", first: "TNE", appears: ["TNE"],
+  abilities: [
+    "Frost breath that freezes opponents",
+    "Serpentine body"
+  ],
+  traits: [
+    "Controlled by the Skar King.",
+    "Opposes Kong and Godzilla in the final battle."
+  ]
+},
+{
+  id: "titan-x", name: "TITAN X", alias: "Unidentified Titan",
+  kind: "SERIES", cls: "Unknown", role: "Season 2 threat of Monarch: Legacy of Monsters.",
+  size: "Not stated on file",
+  status: "UNKNOWN", first: "MLM2", appears: ["MLM2"],
+  abilities: [
+    "Bioluminescent body",
+    "Rises out of the ocean",
+    "Travels through a rift from Axis Mundi"
+  ],
+  traits: [
+    "Arrives on Skull Island in the season premiere.",
+    "!Kong chases it into the sea in the premiere and fights it again in the finale.",
+    "!Reports say it is revealed to be misunderstood rather than simply a monster."
+  ]
+}
+];
+/* FILMS, SERIES, SITES, TIMELINE, PERSONNEL, GLOSSARY. "!" prefix = spoiler. */
+const WORKS = [
+  { code: "G14", title: "Godzilla", type: "FILM", date: "2014-05-16", by: "Gareth Edwards",
+    blurb: "Godzilla awakens to hunt two MUTOs and fights them in San Francisco. Introduces Monarch and the Serizawa and Brody families." },
+  { code: "KSI", title: "Kong: Skull Island", type: "FILM", date: "2017-03-10", by: "Jordan Vogt-Roberts",
+    blurb: "A 1973 Monarch expedition lands on Skull Island, meets Kong and the Skullcrawlers, and finds WWII pilot Hank Marlow." },
+  { code: "KOTM", title: "Godzilla: King of the Monsters", type: "FILM", date: "2019-05-31", by: "Michael Dougherty",
+    blurb: "Alan Jonah's group frees Ghidorah and wakes the Titans. Godzilla, Mothra and Rodan are part of the global fight." },
+  { code: "GVK", title: "Godzilla vs. Kong", type: "FILM", date: "2021-03-31", by: "Adam Wingard",
+    blurb: "Apex Cybernetics builds Mechagodzilla. Godzilla and Kong fight, then unite. Introduces Hollow Earth as a major setting." },
+  { code: "TNE", title: "Godzilla x Kong: The New Empire", type: "FILM", date: "2024-03-29", by: "Adam Wingard",
+    blurb: "A signal from Hollow Earth sends Kong and Godzilla against the Skar King and Shimo." },
+  { code: "SUP", title: "Godzilla x Kong: Supernova", type: "FILM", date: "2027-03-26", by: "Grant Sputore",
+    blurb: "Sequel to The New Empire. Dan Stevens returns as Trapper. Plot details are closely guarded." },
+  { code: "SKI", title: "Skull Island", type: "SERIES", date: "2023-06-22", by: "Netflix animated series",
+    blurb: "An animated MonsterVerse series about a group stranded on Skull Island." },
+  { code: "MLM1", title: "Monarch: Legacy of Monsters S1", type: "SERIES", date: "2023-11-17", by: "Chris Black and Matt Fraction",
+    blurb: "Two siblings investigate their family's ties to Monarch and Colonel Lee Shaw across the 1950s and the present day, after G-Day." },
+  { code: "MLM2", title: "Monarch: Legacy of Monsters S2", type: "SERIES", date: "2026-02-27", by: "Apple TV, 10 episodes to May 1, 2026",
+    blurb: "The story moves to Skull Island, where Titan X arrives and Monarch's future is at stake. Godzilla and Kong return." }
+];
+
+const SITES = [
+  { name: "Skull Island", where: "Pacific Ocean",
+    note: "Kong's home, hidden by a permanent storm. Home of the Iwi people. In Monarch Season 2 it is the setting for Titan X's arrival and a mysterious village." },
+  { name: "Janjira, Japan", where: "Japan",
+    note: "Site of the 1999 nuclear plant incident that killed Sandra Brody and released a MUTO." },
+  { name: "San Francisco", where: "California, USA",
+    note: "Site of the 2014 MUTO and Godzilla battle, known in Monarch: Legacy of Monsters as G-Day." },
+  { name: "Isla de Mara", where: "Mexico",
+    note: "Monarch Outpost 56. Volcanic island where Rodan sleeps until KOTM." },
+  { name: "Yunnan Province", where: "China",
+    note: "Monarch Outpost 61, where Mothra's cocoon is kept." },
+  { name: "Antarctica", where: "Antarctica",
+    note: "Monarch Outpost 32, where Ghidorah was frozen. Also a Hollow Earth entrance in Godzilla vs. Kong." },
+  { name: "Boston", where: "Massachusetts, USA",
+    note: "Site of the final battle between Godzilla, Ghidorah and the Titans in KOTM." },
+  { name: "Pensacola", where: "Florida, USA",
+    note: "Godzilla attacks Apex Cybernetics here in Godzilla vs. Kong." },
+  { name: "Hong Kong", where: "China",
+    note: "Final battle of Godzilla vs. Kong against Mechagodzilla." },
+  { name: "Hollow Earth", where: "Below the crust",
+    note: "A vast inner ecosystem where gravity behaves differently. Origin of Kong's species and setting for The New Empire." },
+  { name: "Axis Mundi", where: "Unknown",
+    note: "Titan X is said to arrive through a rift from here in the Monarch Season 2 premiere." }
+];
+
+const TIMELINE = [
+  { y: "1946", t: "Monarch is founded", d: "Established as a secret organization to study giant creatures." },
+  { y: "1954", t: "Castle Bravo", d: "Hydrogen bomb tests at Bikini Atoll are later revealed as attempts to kill Godzilla." },
+  { y: "1973", t: "Skull Island expedition", d: "Randa's Monarch team meets Kong and the Skullcrawlers. Events of Kong: Skull Island." },
+  { y: "1999", t: "Janjira incident", d: "A MUTO is released at the Janjira nuclear plant. Sandra Brody dies." },
+  { y: "2014", t: "G-Day in San Francisco", d: "Godzilla fights two MUTOs. Titans become public knowledge." },
+  { y: "2015", t: "Monarch: Legacy of Monsters, present day", d: "Season 1 follows Cate and Kentaro Randa a year after G-Day." },
+  { y: "2019", t: "Titans awake", d: "Ghidorah is freed and the Titans appear worldwide. Godzilla wins in Boston." },
+  { y: "2021", t: "Godzilla vs. Kong", d: "Release year. Mechagodzilla is built and Hollow Earth is explored." },
+  { y: "2024", t: "The New Empire", d: "Release year. Kong and Godzilla face the Skar King and Shimo." },
+  { y: "2026", t: "Monarch Season 2", d: "Titan X arrives on Skull Island. !Rodan is teased in the finale." },
+  { y: "2027", t: "Supernova", d: "Godzilla x Kong: Supernova is scheduled for March 26, 2027." }
+];
+
+const PEOPLE = [
+  { name: "Dr. Ishiro Serizawa", by: "Ken Watanabe", in: "G14, KOTM", note: "Monarch scientist who believed Godzilla restores balance. Sacrifices himself in KOTM to revive Godzilla." },
+  { name: "Dr. Vivienne Graham", by: "Sally Hawkins", in: "G14, KOTM", note: "Monarch scientist and Serizawa's colleague." },
+  { name: "Bill Randa", by: "John Goodman", in: "KSI", note: "Monarch official who leads the 1973 Skull Island expedition." },
+  { name: "Houston Brooks", by: "Corey Hawkins", in: "KSI", note: "Geologist on the 1973 expedition." },
+  { name: "Hank Marlow", by: "John C. Reilly", in: "KSI", note: "WWII pilot stranded on Skull Island for decades." },
+  { name: "Dr. Emma Russell", by: "Vera Farmiga", in: "KOTM", note: "Monarch paleobiologist who built the Orca device and sided with Alan Jonah." },
+  { name: "Dr. Mark Russell", by: "Kyle Chandler", in: "KOTM", note: "Monarch consultant and Emma's ex-husband." },
+  { name: "Madison Russell", by: "Millie Bobby Brown", in: "KOTM, GVK", note: "Emma and Mark's daughter who helps expose Apex." },
+  { name: "Dr. Alan Jonah", by: "Charles Dance", in: "KOTM", note: "Mercenary who steals the Orca and frees Ghidorah." },
+  { name: "Dr. Ilene Andrews", by: "Rebecca Hall", in: "GVK, TNE", note: "Skull Island expert who studies Kong." },
+  { name: "Jia", by: "Kaylee Hottle", in: "GVK, TNE", note: "Iwi child who communicates with Kong through sign language." },
+  { name: "Nathan Lind", by: "Alexander Skarsgård", in: "GVK", note: "Geologist recruited for the Hollow Earth expedition." },
+  { name: "Walter Simmons", by: "Demián Bichir", in: "GVK", note: "CEO of Apex Cybernetics." },
+  { name: "Ren Serizawa", by: "Shun Oguri", in: "GVK", note: "Apex engineer and son of Dr. Ishiro Serizawa." },
+  { name: "Bernie Hayes", by: "Brian Tyree Henry", in: "GVK, TNE", note: "Conspiracy podcaster who helps expose Apex." },
+  { name: "Trapper", by: "Dan Stevens", in: "TNE, SUP", note: "Titan veterinarian who builds Kong's Beast Glove." },
+  { name: "Lee Shaw", by: "Kurt Russell and Wyatt Russell", in: "MLM1, MLM2", note: "Army officer turned Monarch figure. Played by Kurt Russell as the older Shaw and Wyatt Russell as the younger Shaw." },
+  { name: "Cate Randa", by: "Anna Sawai", in: "MLM1, MLM2", note: "G-Day survivor who follows her family's ties to Monarch." },
+  { name: "Kentaro Randa", by: "Ren Watabe", in: "MLM1, MLM2", note: "Cate's half-brother, searching for answers about their father." }
+];
+
+/* Monarch outposts seen or named in Godzilla: King of the Monsters (2019), plus related films and series. */
+const OUTPOSTS = [
+  { n: 32, place: "Antarctica", titan: "King Ghidorah (Monster Zero)", id: "ghidorah", note: "Where Monster Zero was held frozen until it is freed." },
+  { n: 49, place: "Loch Ness, Scotland", titan: "Leviathan", id: "leviathan", note: "Monarch: Legacy of Monsters also shows a rift to Axis Mundi hidden under Loch Ness." },
+  { n: 53, place: "Stone Mountain, Georgia, USA", titan: "Tiamat", id: "tiamat", note: "Tiamat's resting place, named on a Monarch map in KOTM." },
+  { n: 54, place: "Castle Bravo, Bermuda", titan: "Godzilla (base for studying him)", id: "godzilla", note: "Monarch's base and the center of its Godzilla research. No Titan is held here." },
+  { n: 55, place: "Arizona desert near Sedona and Phoenix, USA", titan: "Scylla", id: "scylla", note: "Scylla lay dormant beneath the outpost until Ghidorah's call." },
+  { n: 56, place: "Isla de Mara, Mexico", titan: "Rodan", id: "rodan", note: "Rodan sleeps inside the volcano." },
+  { n: 57, place: "Machu Picchu, Peru", titan: "Quetzalcoatl", id: "quetzalcoatl", note: "Quetzalcoatl escapes after Ghidorah's call." },
+  { n: 58, place: "Tinguá Biological Reserve, Brazil", titan: "Behemoth", id: "behemoth", note: "Behemoth hibernates here before attacking Rio de Janeiro." },
+  { n: 61, place: "Yunnan, China (Temple of the Moth)", titan: "Mothra", id: "mothra", note: "Where Mothra's cocoon is kept." },
+  { n: 65, place: "Cairo, Egypt", titan: "Sekhmet", id: "sekhmet", note: "The New Empire later shows Cairo as the site of a Vile Vortex leading to Hollow Earth." },
+  { n: 66, place: "Manpupuner rocks, Komi Republic, Russia", titan: "Amhuluk", id: "amhuluk", note: "Amhuluk escapes after Ghidorah's alpha call." },
+  { n: 67, place: "Near Munich, Germany", titan: "Methuselah", id: "methuselah", note: "Methuselah looks like a forested mountain while dormant." },
+  { n: 68, place: "Volubilis, Morocco", titan: "Baphomet", id: "baphomet", note: "Baphomet breaks free under Ghidorah's direction." },
+  { n: 75, place: "Jebel Barkal, Sudan", titan: "Mokele-Mbembe", id: "mokele-mbembe", note: "Held in a pit and cavern. The film only alludes to this Titan." },
+  { n: 77, place: "Devils Tower, Wyoming, USA", titan: "Abaddon", id: "abaddon", note: "Abaddon rests beneath the tower until Ghidorah's call." },
+  { n: 91, place: "Mount Fuji, Japan", titan: "Yamata no Orochi", id: "yamata-no-orochi", note: "Orochi emerges and swims toward a cruise ship in the Pacific." },
+  { n: 92, place: "Angkor Wat, Cambodia", titan: "Typhon", id: "typhon", note: "Typhon breaks free and is tracked near the Philippines." },
+  { n: 99, place: "Ayers Rock (Uluru), Australia", titan: "Bunyip", id: "bunyip", note: "Bunyip breaks loose under Ghidorah's influence." }
+];
+
+const GLOSSARY = [
+  { k: "Titanus", v: "Monarch's prefix for giant Titans, such as Titanus Gojira." },
+  { k: "MUTO", v: "Massive Unidentified Terrestrial Organism. Monarch's term for the radiation-feeding creatures of 2014." },
+  { k: "Alpha Titan", v: "The dominant Titan that others follow, such as Godzilla." },
+  { k: "G-Day", v: "Name used in Monarch: Legacy of Monsters for the 2014 San Francisco battle." },
+  { k: "Hollow Earth", v: "An enormous inner world beneath the crust and the origin of many Titans." },
+  { k: "Orca", v: "A Monarch device that mimics Titan calls to attract or control them." },
+  { k: "HEAV", v: "Hollow Earth Aerial Vehicle, used in the expedition in Godzilla vs. Kong." },
+  { k: "Iwi", v: "The indigenous people of Skull Island who live alongside Kong." },
+  { k: "Apex Cybernetics", v: "The company that built Mechagodzilla in Godzilla vs. Kong." },
+  { k: "Monarch", v: "A global organization that studies Titans, founded in 1946." }
+];
+(function () {
+  var LABEL = { G14: "Godzilla (2014)", KSI: "Kong: Skull Island", KOTM: "King of the Monsters", GVK: "Godzilla vs. Kong",
+    TNE: "The New Empire", SUP: "Supernova", SKI: "Skull Island (anime)", MLM1: "Monarch S1", MLM2: "Monarch S2" };
+  var KINDS = ["ALL", "TITAN", "MUTO", "SKULL ISLAND", "HOLLOW EARTH", "CONSTRUCT", "SERIES"];
+  var TABS = [["titans", "TITANS"], ["outposts", "OUTPOSTS"], ["archive", "ARCHIVE"], ["sites", "SITES"], ["timeline", "TIMELINE"], ["people", "PERSONNEL"], ["glossary", "GLOSSARY"]];
+  var state = { tab: "titans", kind: "ALL", q: "", src: null, sel: "godzilla", view: "list", color: false };
+  var imgs = {};
+
+  function $(s) { return document.querySelector(s); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function label(c) { return LABEL[c] || c; }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  function getImg(id) { return imgs[id] || lsGet("mv_img_" + id); }
+
+  function sp(text) {
+    var lead = text.charAt(0) === "!";
+    var i = lead ? 0 : text.indexOf(" !");
+    if (i < 0) return esc(text);
+    var pre = text.slice(0, i).trim();
+    var post = text.slice(i + (lead ? 1 : 2)).trim();
+    return (pre ? esc(pre) + " " : "") + '<span class="sp">SPOILER</span><button class="spoil" type="button" data-sp>' + esc(post) + "</button>";
+  }
+  function fmtDate(d) {
+    var dt = new Date(d + "T00:00:00Z");
+    var s = dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).toUpperCase();
+    return dt.getTime() > Date.now() ? s + " (UPCOMING)" : s;
+  }
+
+  function visible() {
+    var q = state.q.trim().toLowerCase();
+    return TITANS.filter(function (t) {
+      if (state.kind !== "ALL" && t.kind !== state.kind) return false;
+      if (state.src && t.appears.indexOf(state.src) < 0) return false;
+      if (!q) return true;
+      var safe = t.traits.filter(function (x) { return x.charAt(0) !== "!"; });
+      var hay = [t.name, t.alias, t.cls, t.role, t.kind, t.size, t.status, t.outpost || ""].concat(t.abilities, safe).join(" ").toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+  }
+
+  function slot(t, img) {
+    var q = encodeURIComponent(t.name.replace(/[^\w ]/g, "") + " MonsterVerse");
+    var inner = img
+      ? '<img src="' + img + '" alt="' + esc(t.name) + ' reference image">'
+      : '<div><div class="ret"></div><small>NO VISUAL ON FILE</small><small>ADD AN IMAGE BELOW</small></div>';
+    return '<div class="slot' + (state.color ? " orig" : "") + '">' + inner + "</div>" +
+      '<div class="acts"><label class="btn upl">' + (img ? "REPLACE IMAGE" : "UPLOAD IMAGE") + '<input id="file" type="file" accept="image/*"></label>' +
+      (img ? '<button class="btn dim" type="button" data-col>' + (state.color ? "RED TINT" : "ORIGINAL COLOR") + '</button><button class="btn dim" type="button" data-rm>REMOVE</button>' : "") +
+      '<a class="btn dim" href="https://www.google.com/search?tbm=isch&q=' + q + '" target="_blank" rel="noopener noreferrer">FIND REFERENCE</a></div>' +
+      '<div class="msg" id="msg" role="status"></div>';
+  }
+
+  function dossier(t) {
+    var spec = [["DESIGNATION", t.cls], ["TYPE", t.kind], ["OUTPOST", t.outpost || "None on file"], ["ROLE", t.role], ["SIZE", t.size], ["STATUS", t.status], ["FIRST SEEN", label(t.first)]];
+    return '<button class="back" type="button" data-back>&lt; BACK TO LIST</button>' +
+      '<div class="dh"><h2>' + esc(t.name) + "</h2><p>" + esc(t.alias) + "</p></div>" +
+      '<div class="twocol"><div>' + slot(t, getImg(t.id)) + '</div><div class="brk"><dl class="spec">' +
+      spec.map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("") + "</dl></div></div>" +
+      '<section><h3 class="sec">ABILITIES</h3><ul class="l">' + t.abilities.map(function (a) { return "<li>" + esc(a) + "</li>"; }).join("") + "</ul></section>" +
+      '<section><h3 class="sec">FIELD NOTES</h3><ul class="l">' + t.traits.map(function (a) { return "<li>" + sp(a) + "</li>"; }).join("") + "</ul></section>" +
+      '<section><h3 class="sec">APPEARS IN</h3><div class="chips">' +
+      t.appears.map(function (c) { return '<button class="chip" type="button" data-src="' + c + '">' + esc(label(c)) + "</button>"; }).join("") + "</div></section>";
+  }
+
+  function titansShell() {
+    return '<div class="bar"><input class="q" id="q" type="search" placeholder="SEARCH RECORDS" autocomplete="off" aria-label="Search records" value="' + esc(state.q) + '"></div>' +
+      '<div class="chips" role="group" aria-label="Filter by type">' +
+      KINDS.map(function (k) { return '<button class="chip" type="button" data-kind="' + k + '" aria-pressed="false">' + k + "</button>"; }).join("") + "</div>" +
+      '<div class="meta" style="margin-top:12px"><span id="count"></span><span id="srcpill"></span></div>' +
+      '<div class="split" data-view="list"><div class="list" id="list"></div><div class="dossier" id="dossier"></div></div>';
+  }
+
+  function updateTitans() {
+    var list = visible();
+    if (!list.some(function (t) { return t.id === state.sel; })) state.sel = list.length ? list[0].id : null;
+    if (!state.sel) state.view = "list";
+    $("#count").textContent = "SHOWING " + list.length + " OF " + TITANS.length + " RECORDS";
+    $("#srcpill").innerHTML = state.src ? '<button class="pill" type="button" data-clear>FILTER: ' + esc(label(state.src)).toUpperCase() + " [X]</button>" : "";
+    document.querySelectorAll("[data-kind]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.kind === state.kind)); });
+    $("#list").innerHTML = list.length ? list.map(function (t) {
+      var n = String(TITANS.indexOf(t) + 1).padStart(2, "0");
+      return '<button class="row" type="button" data-id="' + t.id + '" aria-current="' + (t.id === state.sel) + '"><span class="n">' + n +
+        '</span><span><span class="nm">' + esc(t.name) + '</span><span class="al">' + esc(t.alias) + '</span></span><span class="tag">' + esc(t.kind) + "</span></button>";
+    }).join("") : '<p class="meta">NO RECORDS MATCH. CLEAR THE SEARCH OR FILTERS.</p>';
+    $("#dossier").innerHTML = state.sel ? dossier(TITANS.filter(function (t) { return t.id === state.sel; })[0]) : "";
+    $(".split").setAttribute("data-view", state.view);
+  }
+
+  function cards(items, fn) { return '<div class="cards">' + items.map(fn).join("") + "</div>"; }
+  var VIEWS = {
+    outposts: function () {
+      return '<p class="meta">MONARCH OUTPOSTS FROM KING OF THE MONSTERS, BY NUMBER</p>' +
+        cards(OUTPOSTS.slice().sort(function (a, b) { return a.n - b.n; }), function (o) {
+          return '<article class="card"><span class="k">OUTPOST ' + o.n + "</span><h3>" + esc(o.place) + "</h3><p><strong>" + esc(o.titan) + "</strong></p><p>" + esc(o.note) +
+            '</p><div><button class="btn" type="button" data-goto="' + o.id + '">OPEN DOSSIER</button></div></article>';
+        });
+    },
+    archive: function () {
+      return cards(WORKS.slice().sort(function (a, b) { return a.date.localeCompare(b.date); }), function (w) {
+        return '<article class="card"><span class="k">' + w.type + " / " + fmtDate(w.date) + "</span><h3>" + esc(w.title) + "</h3><p>" + esc(w.blurb) +
+          '</p><span class="k">' + esc(w.by) + '</span><div><button class="btn" type="button" data-work="' + w.code + '">VIEW TITANS</button></div></article>';
+      });
+    },
+    sites: function () {
+      return cards(SITES, function (s) { return '<article class="card"><span class="k">' + esc(s.where.toUpperCase()) + "</span><h3>" + esc(s.name) + "</h3><p>" + esc(s.note) + "</p></article>"; });
+    },
+    timeline: function () {
+      return '<ol class="tl">' + TIMELINE.map(function (e) { return '<li><div class="y">' + esc(e.y) + "</div><strong>" + esc(e.t) + "</strong><p style=\"margin:4px 0 0\">" + sp(e.d) + "</p></li>"; }).join("") + "</ol>";
+    },
+    people: function () {
+      return cards(PEOPLE, function (p) {
+        var where = p.in.split(", ").map(label).join(" / ");
+        return '<article class="card"><span class="k">' + esc(p.by.toUpperCase()) + "</span><h3>" + esc(p.name) + "</h3><p>" + esc(p.note) + '</p><span class="k">IN: ' + esc(where.toUpperCase()) + "</span></article>";
+      });
+    },
+    glossary: function () {
+      return cards(GLOSSARY, function (g) { return '<article class="card"><h3>' + esc(g.k) + "</h3><p>" + esc(g.v) + "</p></article>"; });
+    }
+  };
+
+  function renderTabs() {
+    $("#tabs").innerHTML = TABS.map(function (t) { return '<button class="tab" role="tab" type="button" data-tab="' + t[0] + '" aria-selected="' + (state.tab === t[0]) + '">' + t[1] + "</button>"; }).join("");
+  }
+  function show() {
+    renderTabs();
+    if (state.tab === "titans") { $("#main").innerHTML = titansShell(); updateTitans(); }
+    else $("#main").innerHTML = VIEWS[state.tab]();
+  }
+  function toTop() { if (window.innerWidth < 860) window.scrollTo(0, 0); }
+
+  function processFile(file, id) {
+    if (!file) return;
+    var msg = $("#msg");
+    if (!/^image\//.test(file.type)) { msg.textContent = "THAT FILE IS NOT AN IMAGE."; return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var im = new Image();
+      im.onload = function () {
+        var s = Math.min(1, 720 / Math.max(im.width, im.height));
+        var c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(im.width * s)); c.height = Math.max(1, Math.round(im.height * s));
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        var url;
+        try { url = c.toDataURL("image/jpeg", 0.82); } catch (e) { msg.textContent = "COULD NOT READ THAT IMAGE."; return; }
+        imgs[id] = url;
+        var ok = lsSet("mv_img_" + id, url);
+        updateTitans();
+        if (!ok) $("#msg").textContent = "SHOWN FOR THIS SESSION ONLY. BROWSER STORAGE IS FULL OR BLOCKED.";
+      };
+      im.onerror = function () {
+        if (file.size < 1500000 && /^data:image\//.test(String(fr.result))) {
+          imgs[id] = fr.result;
+          var ok2 = lsSet("mv_img_" + id, fr.result);
+          updateTitans();
+          if (!ok2) $("#msg").textContent = "SHOWN FOR THIS SESSION ONLY. BROWSER STORAGE IS FULL OR BLOCKED.";
+        } else msg.textContent = "COULD NOT READ THAT IMAGE. TRY A JPG OR PNG.";
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    var d = b.dataset;
+    if (d.sp !== undefined) { b.setAttribute("data-open", "1"); return; }
+    if (d.tab) { state.tab = d.tab; show(); window.scrollTo(0, 0); return; }
+    if (d.kind) { state.kind = d.kind; state.view = "list"; updateTitans(); return; }
+    if (d.id) { state.sel = d.id; state.view = "dossier"; updateTitans(); toTop(); return; }
+    if (d.back !== undefined) { state.view = "list"; updateTitans(); toTop(); return; }
+    if (d.src) { state.src = d.src; state.view = "list"; updateTitans(); toTop(); return; }
+    if (d.clear !== undefined) { state.src = null; updateTitans(); return; }
+    if (d.work) { state.src = d.work; state.tab = "titans"; state.view = "list"; show(); window.scrollTo(0, 0); return; }
+    if (d.goto) { state.tab = "titans"; state.kind = "ALL"; state.src = null; state.q = ""; state.sel = d.goto; state.view = "dossier"; show(); window.scrollTo(0, 0); return; }
+    if (d.col !== undefined) { state.color = !state.color; updateTitans(); return; }
+    if (d.rm !== undefined) { delete imgs[state.sel]; lsDel("mv_img_" + state.sel); updateTitans(); }
+  });
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "q") { state.q = e.target.value; state.view = "list"; updateTitans(); }
+  });
+  document.addEventListener("change", function (e) {
+    if (e.target.id === "file") processFile(e.target.files[0], state.sel);
+  });
+
+  var LOG = ["AUTH TOKEN ACCEPTED", "OUTPOST UPLINK ONLINE", TITANS.length + " TITAN RECORDS LOADED", "MONARCH S2 FINALE ON FILE", "TITAN ACTIVITY: MONITORED"];
+  var li = 0;
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    setInterval(function () { if (document.hidden) return; li = (li + 1) % LOG.length; $("#logtxt").textContent = LOG[li]; }, 3200);
+  }
+
+  show();
+})();
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) { navigator.serviceWorker.register("sw.js").catch(function () {}); }
+</script>
+</body>
+</html>
